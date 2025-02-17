@@ -3,10 +3,12 @@ class Layer {
   final String id;
   final String type;
   final String? content;
-  final double dx, dy, size;
-   bool isSelected;
+  final double dx, dy, size;//pocicion y tamaño
+   bool isSelected;//si esta selecionado
 
+  //constructor
   Layer({
+
     required this.id,
     required this.type,
     this.content,
@@ -16,7 +18,7 @@ class Layer {
     this.isSelected = false,
   });
 
-  // ✅ Método copyWith para actualizar solo los valores necesarios
+  //  Método copyWith para actualizar solo los valores necesarios
   Layer copyWith({
     String? id,
     String? type,
@@ -26,6 +28,7 @@ class Layer {
     double? size,
     bool? isSelected,
   }) {
+    print("valores actualizados");
     return Layer(
       id: id ?? this.id,
       type: type ?? this.type,

@@ -4,12 +4,27 @@ import 'package:pixelfy/screens/editor.dart';
 import 'package:pixelfy/screens/image_picker.dart';
 import 'package:pixelfy/utils/cadenas.dart';
 
+import 'package:provider/provider.dart';
+import 'package:pixelfy/utils/provider_ratio.dart';
+
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
   await Cadenas.loadStrings();
-  runApp(const MyApp());
+  runApp(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => ConfigLayout()),
+        ],
+        child: const MyApp(),
+      )
+    );
 }
+
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

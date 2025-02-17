@@ -1,9 +1,12 @@
-
 import 'package:flutter/material.dart';
+import 'package:pixelfy/main.dart';
 import 'dart:io';
 import 'package:pixelfy/screens/layer/layer.dart';
 import 'package:pixelfy/screens/layer/editable_layer.dart';
+import 'package:pixelfy/screens/widgets/widget_ratio.dart';
+import 'package:pixelfy/utils/provider_ratio.dart';
 import 'package:uuid/uuid.dart'; // 📌 Para generar IDs únicos
+import 'package:provider/provider.dart';
 
 class EditorScreen extends StatefulWidget {
   final File imageFile;
@@ -17,6 +20,8 @@ class EditorScreen extends StatefulWidget {
 class _EditorScreenState extends State<EditorScreen> {
   List<Layer> layers = []; // 📌 Lista de capas
   final uuid = Uuid(); // 📌 Generador de IDs únicos
+  Size? _canvasSize; //dimencion ratio selecionado
+
 
   void _selectLayer(String id) {
     setState(() {
@@ -34,56 +39,74 @@ class _EditorScreenState extends State<EditorScreen> {
 
   void _deleteLayer(String id) {
     setState(() {
-      layers = List.from(layers)..removeWhere((layer) => layer.id == id);
+      layers = List.from(layers)
+        ..removeWhere((layer) => layer.id == id);
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Obtenemos el tamaño desde el Provider
+    final canvasSize = context
+        .watch<ConfigLayout>()
+        .ratio;
+
     return Scaffold(
-      appBar: AppBar(title: Text("Editor de Imágenes")),
-      body: Stack(
-        children: [
-          /// 📌 Asegurar que la imagen ocupa todo el espacio disponible
-          Positioned.fill(
-            child: Center(
+        appBar: AppBar(title: Text("Editor de Imágenes")),
+        body: Center( // 📌 Centrar todo el área de trabajo
+            child:
+            AspectRatio(
+              aspectRatio: canvasSize.width / canvasSize.height,
+              child: Container(
+                color: Colors.black,
+                // 📌 Color para visualizar los límites del área de trabajo
+
+                child:
+                SizedBox.expand(
+              child: Stack(
+              children: [
+              Positioned.fill(
               child: Image.file(
                 widget.imageFile,
-                fit: BoxFit.contain, // Evita que la imagen se distorsione
+                fit: BoxFit.contain,
               ),
             ),
-          ),
-
-          /// 📌 Agregar los emojis correctamente posicionados
-          ...layers.map((layer) {
-            return Positioned(
-              left: layer.dx,
-              top: layer.dy,
-              child: EditableLayer(
-                key: ValueKey(layer.id),
-                onDelete: _deleteLayer,
-                layer: layer,
-                onUpdate: (updatedLayer) {
-                  setState(() {
-                    int index = layers.indexWhere((l) => l.id == layer.id);
-                    if (index != -1) {
-                      layers[index] = updatedLayer;
-                    }
-                  });
-                },
-                onSelect: _selectLayer,
-              ),
-            );
-          }).toList(),
-        ],
-      ),
-      bottomNavigationBar: _buildBottomMenu(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _removeSelectedLayer,
-        child: Icon(Icons.delete),
-      ),
+            ...layers.map((layer) {
+    return Positioned(
+    left: layer.dx,
+    top: layer.dy,
+    child: EditableLayer(
+    key: ValueKey(layer.id),
+    onDelete: _deleteLayer,
+    layer: layer,
+    onUpdate: (updatedLayer) {
+    setState(() {
+    int index = layers.indexWhere((l) => l.id == layer.id);
+    if (index != -1) {
+    layers[index] = updatedLayer;
+    }
+    });
+    },
+    onSelect: _selectLayer,
+    ),
     );
-  }
+    }).toList(),
+    ],
+    ),
+    ),
+
+
+    ),
+    ),
+    ),
+    bottomNavigationBar: _buildBottomMenu(),
+    floatingActionButton: FloatingActionButton(
+    onPressed: _removeSelectedLayer,
+    child: Icon(Icons.delete),
+    ),
+    );
+    }
+
 
   Widget _buildBottomMenu() {
     return Container(
@@ -92,6 +115,12 @@ class _EditorScreenState extends State<EditorScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
+          /*
+          _menuButton(Icons.aspect_ratio, "Ratio", () {
+            _showRatioPicker();
+          }),*/
+          WidgetRatio(),
+
           _menuButton(Icons.text_fields, "Texto", () {}),
           _menuButton(Icons.brush, "Dibujar", () {}),
           _menuButton(Icons.emoji_emotions, "Emojis", () {
@@ -145,7 +174,7 @@ class _EditorScreenState extends State<EditorScreen> {
           return GestureDetector(
             onTap: () {
               _addEmoji(emojis[index]); // Agrega el emoji y cierra la ventana
-              Navigator.pop(context);
+              Navigator.pop(context); //cierro el bottonshet
             },
             child: Center(
               child: Text(
@@ -158,6 +187,8 @@ class _EditorScreenState extends State<EditorScreen> {
       ),
     );
   }
+
+
 
   void _addEmoji(String emoji) {
     setState(() {
@@ -173,45 +204,8 @@ class _EditorScreenState extends State<EditorScreen> {
       );
     });
   }
+
+
 }
 
-/*
-  Widget _emojiPicker() {
-    List<String> emojiList = ["😂", "😍", "🔥", "💀", "👍", "🎉"];
 
-    return Container(
-      padding: EdgeInsets.all(8),
-      color: Colors.grey[200],
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: emojiList.map((emoji) {
-            return GestureDetector(
-              onTap: () => _addEmoji(emoji),
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Text(emoji, style: TextStyle(fontSize: 30)),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
-    );
-  }
-*/
-
-/*
-  void _addEmoji(String emoji) {
-    setState(() {
-      layers.add(Layer(
-        id: uuid.v4(), // Genera un ID único
-        type: "emoji",
-        content: emoji,
-        dx: 100,
-        dy: 100,
-        size: 50,
-      )
-      );
-    });
-  }
-  */
