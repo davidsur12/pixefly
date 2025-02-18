@@ -28,7 +28,7 @@ class Layer {
     double? size,
     bool? isSelected,
   }) {
-    print("valores actualizados");
+    print("valores actualizados x = ${this.dx}  y = ${this.dy}");
     return Layer(
       id: id ?? this.id,
       type: type ?? this.type,

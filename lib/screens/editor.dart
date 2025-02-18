@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:pixelfy/main.dart';
+import 'package:pixelfy/screens/layer/editor_screen_dimesiones.dart';
 import 'dart:io';
 import 'package:pixelfy/screens/layer/layer.dart';
 import 'package:pixelfy/screens/layer/editable_layer.dart';
@@ -22,7 +23,6 @@ class _EditorScreenState extends State<EditorScreen> {
   final uuid = Uuid(); // 📌 Generador de IDs únicos
   Size? _canvasSize; //dimencion ratio selecionado
 
-
   void _selectLayer(String id) {
     setState(() {
       layers = layers.map((layer) {
@@ -39,74 +39,73 @@ class _EditorScreenState extends State<EditorScreen> {
 
   void _deleteLayer(String id) {
     setState(() {
-      layers = List.from(layers)
-        ..removeWhere((layer) => layer.id == id);
+      layers = List.from(layers)..removeWhere((layer) => layer.id == id);
     });
   }
 
   @override
   Widget build(BuildContext context) {
     // Obtenemos el tamaño desde el Provider
-    final canvasSize = context
-        .watch<ConfigLayout>()
-        .ratio;
+    final canvasSize = context.watch<ConfigLayout>().ratio;
 
     return Scaffold(
-        appBar: AppBar(title: Text("Editor de Imágenes")),
-        body: Center( // 📌 Centrar todo el área de trabajo
-            child:
-            AspectRatio(
-              aspectRatio: canvasSize.width / canvasSize.height,
-              child: Container(
-                color: Colors.black,
-                // 📌 Color para visualizar los límites del área de trabajo
+      appBar: AppBar(title: Text("Editor de Imágenes")),
+      body: Center(
+        //  todo el área de trabajo
+        child: ImageEditorScreen(imageFile: widget.imageFile)
+            /*
+        AspectRatio(
+          //aspecto del raio el area de trabajo
+          aspectRatio: canvasSize.width / canvasSize.height, //diemnciones
+          child: Container(
+            color: Colors.black,
+            // 📌 Color para visualizar los límites del área de trabajo
 
-                child:
-                SizedBox.expand(
+            child: SizedBox.expand(
               child: Stack(
-              children: [
-              Positioned.fill(
-              child: Image.file(
-                widget.imageFile,
-                fit: BoxFit.contain,
+                children: [
+                  Positioned.fill(
+                    child: Image.file(
+                      widget.imageFile,//imagen
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  ...layers.map((layer) {
+                    return Positioned(//se usa Positioned para cada elemento de la lista
+                      left: layer.dx,
+                      top: layer.dy,
+                      child: EditableLayer(
+                        key: ValueKey(layer.id),
+                        onDelete: _deleteLayer,
+                        layer: layer,
+                        onUpdate: (updatedLayer) {
+                          setState(() {
+                            int index =
+                                layers.indexWhere((l) => l.id == layer.id);
+                            if (index != -1) {
+                              layers[index] = updatedLayer;
+                            }
+                          });
+                        },
+                        onSelect: _selectLayer,
+                      ),
+                    );
+                  }).toList(),
+                ],
               ),
             ),
-            ...layers.map((layer) {
-    return Positioned(
-    left: layer.dx,
-    top: layer.dy,
-    child: EditableLayer(
-    key: ValueKey(layer.id),
-    onDelete: _deleteLayer,
-    layer: layer,
-    onUpdate: (updatedLayer) {
-    setState(() {
-    int index = layers.indexWhere((l) => l.id == layer.id);
-    if (index != -1) {
-    layers[index] = updatedLayer;
-    }
-    });
-    },
-    onSelect: _selectLayer,
-    ),
+          ),
+        ),
+        
+        */
+      ),
+      bottomNavigationBar: _buildBottomMenu(),//menu de opcines
+      floatingActionButton: FloatingActionButton(
+        onPressed: _removeSelectedLayer,
+        child: Icon(Icons.delete),
+      ),
     );
-    }).toList(),
-    ],
-    ),
-    ),
-
-
-    ),
-    ),
-    ),
-    bottomNavigationBar: _buildBottomMenu(),
-    floatingActionButton: FloatingActionButton(
-    onPressed: _removeSelectedLayer,
-    child: Icon(Icons.delete),
-    ),
-    );
-    }
-
+  }
 
   Widget _buildBottomMenu() {
     return Container(
@@ -120,7 +119,6 @@ class _EditorScreenState extends State<EditorScreen> {
             _showRatioPicker();
           }),*/
           WidgetRatio(),
-
           _menuButton(Icons.text_fields, "Texto", () {}),
           _menuButton(Icons.brush, "Dibujar", () {}),
           _menuButton(Icons.emoji_emotions, "Emojis", () {
@@ -188,24 +186,21 @@ class _EditorScreenState extends State<EditorScreen> {
     );
   }
 
-
-
   void _addEmoji(String emoji) {
     setState(() {
       layers.add(
         Layer(
-          id: uuid.v4(), // Genera un ID único
+          id: uuid.v4(),
+          // Genera un ID único
           type: "emoji",
           content: emoji,
-          dx: 150, // Posición inicial centrada en X
-          dy: 250, // Posición inicial centrada en Y
+          dx: 150,
+          // Posición inicial centrada en X
+          dy: 250,
+          // Posición inicial centrada en Y
           size: 50,
         ),
       );
     });
   }
-
-
 }
-
-
