@@ -5,6 +5,45 @@ import 'package:pixelfy/screens/widgets/widget_ratio.dart';
 import 'package:pixelfy/utils/provider_ratio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+
+/*
+class EditableLayer extends StatelessWidget {
+  final Layer layer;
+  final VoidCallback onDelete;
+  final ValueChanged<String> onSelect; // <-- Asegurar que recibe un String
+  final ValueChanged<Layer> onUpdate;
+
+  const EditableLayer({
+    Key? key,
+    required this.layer,
+    required this.onDelete,
+    required this.onSelect,  // <-- Asegurar que es requerido
+    required this.onUpdate,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        print('🟡 Emoji tocado: ${layer.id}');
+        onSelect(layer.id); // <-- Llamar correctamente onSelect con el ID
+      },
+      child: Container(
+        padding: EdgeInsets.all(5),
+        decoration: BoxDecoration(
+          border: layer.isSelected
+              ? Border.all(color: Colors.blue, width: 2)
+              : null,
+        ),
+        child: Text(layer.content ?? "nada", style: TextStyle(fontSize: layer.size)),
+      ),
+    );
+  }
+}
+
+*/
+
 class EditableLayer extends StatefulWidget {
   final Layer layer;
   final Function(Layer) onUpdate;
@@ -62,7 +101,7 @@ class _EditableLayerState extends State<EditableLayer> {
       child: Transform.scale(
         scale: _scale,
         child: Opacity(
-          opacity: widget.layer.isSelected ? 0.7 : 1.0,
+          opacity: 1.0,//widget.layer.isSelected ? 0.5 : 1.0,
           child: Text(
             widget.layer.content ?? "😀",
             style: TextStyle(fontSize: 50),
@@ -72,4 +111,5 @@ class _EditableLayerState extends State<EditableLayer> {
     );
   }
 }
+
 

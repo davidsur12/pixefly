@@ -52,52 +52,8 @@ class _EditorScreenState extends State<EditorScreen> {
       appBar: AppBar(title: Text("Editor de Imágenes")),
       body: Center(
         //  todo el área de trabajo
-        child: ImageEditorScreen(imageFile: widget.imageFile)
-            /*
-        AspectRatio(
-          //aspecto del raio el area de trabajo
-          aspectRatio: canvasSize.width / canvasSize.height, //diemnciones
-          child: Container(
-            color: Colors.black,
-            // 📌 Color para visualizar los límites del área de trabajo
-
-            child: SizedBox.expand(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: Image.file(
-                      widget.imageFile,//imagen
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  ...layers.map((layer) {
-                    return Positioned(//se usa Positioned para cada elemento de la lista
-                      left: layer.dx,
-                      top: layer.dy,
-                      child: EditableLayer(
-                        key: ValueKey(layer.id),
-                        onDelete: _deleteLayer,
-                        layer: layer,
-                        onUpdate: (updatedLayer) {
-                          setState(() {
-                            int index =
-                                layers.indexWhere((l) => l.id == layer.id);
-                            if (index != -1) {
-                              layers[index] = updatedLayer;
-                            }
-                          });
-                        },
-                        onSelect: _selectLayer,
-                      ),
-                    );
-                  }).toList(),
-                ],
-              ),
-            ),
-          ),
-        ),
-        
-        */
+        //child: ImageEditorScreen(imageFile: widget.imageFile,layers: layers,)
+          child: ImageEditorScreen(imageFile: widget.imageFile)
       ),
       bottomNavigationBar: _buildBottomMenu(),//menu de opcines
       floatingActionButton: FloatingActionButton(
@@ -119,7 +75,14 @@ class _EditorScreenState extends State<EditorScreen> {
             _showRatioPicker();
           }),*/
           WidgetRatio(),
-          _menuButton(Icons.text_fields, "Texto", () {}),
+          _menuButton(Icons.text_fields, "Texto", () {
+           // final configLayout = context.read<ConfigLayout>();
+          print("tamaño: ${ context.read<ConfigLayout>().ratio}");
+
+
+            print('📌 Emojis de editor: ${ context.read<ConfigLayout>().layers.map((e) => '(${e.dx}, ${e.dy})').toList()}');
+
+          }),
           _menuButton(Icons.brush, "Dibujar", () {}),
           _menuButton(Icons.emoji_emotions, "Emojis", () {
             _showEmojiPicker(); // Abrimos la ventana de emojis
@@ -171,7 +134,8 @@ class _EditorScreenState extends State<EditorScreen> {
         itemBuilder: (context, index) {
           return GestureDetector(
             onTap: () {
-              _addEmoji(emojis[index]); // Agrega el emoji y cierra la ventana
+              context.read<ConfigLayout>().agregarLayer(emojis[index]);
+             // _addEmoji(emojis[index]); // Agrega el emoji y cierra la ventana
               Navigator.pop(context); //cierro el bottonshet
             },
             child: Center(
@@ -199,6 +163,8 @@ class _EditorScreenState extends State<EditorScreen> {
           dy: 250,
           // Posición inicial centrada en Y
           size: 50,
+          width: 50,   // ✅ Agregar width
+          height: 50,
         ),
       );
     });

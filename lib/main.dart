@@ -17,6 +17,7 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ConfigLayout()),
+
         ],
         child: const MyApp(),
       )

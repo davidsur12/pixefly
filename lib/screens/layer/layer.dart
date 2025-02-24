@@ -5,6 +5,8 @@ class Layer {
   final String? content;
   final double dx, dy, size;//pocicion y tamaño
    bool isSelected;//si esta selecionado
+  final double width;  //  Add width
+  final double height; //  Add height
 
   //constructor
   Layer({
@@ -16,6 +18,8 @@ class Layer {
     required this.dy,
     required this.size,
     this.isSelected = false,
+    required this.width,   //
+    required this.height,  //
   });
 
   //  Método copyWith para actualizar solo los valores necesarios
@@ -27,6 +31,8 @@ class Layer {
     double? dy,
     double? size,
     bool? isSelected,
+    double? width,
+    double? height,
   }) {
     print("valores actualizados x = ${this.dx}  y = ${this.dy}");
     return Layer(
@@ -37,6 +43,8 @@ class Layer {
       dy: dy ?? this.dy,
       size: size ?? this.size,
       isSelected: isSelected ?? this.isSelected,
+      width: width ?? this.width,
+      height: height ?? this.height,
     );
   }
 }
