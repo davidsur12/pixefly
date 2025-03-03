@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:pixelfy/screens/layers_collage/layout_collage.dart';
+
+/***
+ * figura de cuadrado con los siguientes parametros
+ * posicion
+ * ancho
+ * alto
+ * ,odificadores de tamaño
+ * limitadores
+ * ancho y alto minimo
+ */
+
+
+
 
 class ResizableStack extends StatefulWidget {
-  final double initialWidth;
-  final double initialHeight;
-  final List<Widget> children;
 
-  const ResizableStack({
+  double initialWidth;
+  double initialHeight;
+  Offset position;
+
+
+  ResizableStack({
     Key? key,
-    this.initialWidth = 200,
-    this.initialHeight = 200,
-    required this.children,
+    required this.initialWidth,
+    required this.initialHeight ,
+    required this.position
+
   }) : super(key: key);
 
   @override
@@ -20,13 +37,18 @@ class _ResizableStackState extends State<ResizableStack> {
   late double width;
   late double height;
   late Offset position;
+  late CollagePhoto boxCollage;
 
   @override
   void initState() {
     super.initState();
+
+
     width = widget.initialWidth;
     height = widget.initialHeight;
     position = Offset(100, 100); // Posición inicial en la pantalla
+    print("width es de $width");
+    boxCollage = CollagePhoto(width: width, height: height);
   }
 
   void _updateSize(double dx, double dy, {bool fromLeft = false, bool fromTop = false}) {
@@ -73,22 +95,28 @@ class _ResizableStackState extends State<ResizableStack> {
 
   @override
   Widget build(BuildContext context) {
-    return Positioned(
+
+    return box(widget.position);
+
+  }
+// Posición inicial en la pantalla
+  Widget box(  Offset position  ){
+   return  Positioned(
       left: position.dx,
       top: position.dy,
       child: Stack(
         children: [
           Container(
-            width: width,
-            height: height,
+            width: width/2,
+            height: height/2,
             decoration: BoxDecoration(
               color: Colors.blue.withOpacity(0.2),
               border: Border.all(color: Colors.blue, width: 2),
             ),
-            child: Stack(children: widget.children),
+            child:  Positioned(left: 50, top: 50, child: Icon(Icons.image, size: 50), )//Stack(children: [ Positioned(left: 50, top: 50, child: Icon(Icons.image, size: 50), ) ,]),
           ),
           // Esquinas
-        /*
+          /*
           _buildResizeHandle(alignment: Alignment.topLeft, onDrag: (d) => _updateSize(d.delta.dx, d.delta.dy, fromLeft: true, fromTop: true)),
           _buildResizeHandle(alignment: Alignment.topRight, onDrag: (d) => _updateSize(d.delta.dx, d.delta.dy, fromTop: true)),
           _buildResizeHandle(alignment: Alignment.bottomLeft, onDrag: (d) => _updateSize(d.delta.dx, d.delta.dy, fromLeft: true)),
@@ -103,5 +131,7 @@ class _ResizableStackState extends State<ResizableStack> {
         ],
       ),
     );
+
   }
 }
+

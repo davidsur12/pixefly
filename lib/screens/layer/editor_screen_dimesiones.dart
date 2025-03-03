@@ -1,12 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:pixelfy/screens/layer/editable_layer.dart';
+import 'package:pixelfy/screens/layers_collage/screeen_capa_layout.dart';
 import 'package:pixelfy/utils/provider_ratio.dart';
 import 'package:provider/provider.dart';
 import 'package:pixelfy/screens/layer/layer.dart';
 import 'package:pixelfy/screens/layers_collage/resize_layout_stack.dart';
 
-
+/***
+ * editor principal donde podemos cambiar las opcines basicas del canvas
+ */
 class ImageEditorScreen extends StatefulWidget {
   final File imageFile;
 
@@ -19,7 +22,116 @@ class ImageEditorScreen extends StatefulWidget {
 class _ImageEditorScreenState extends State<ImageEditorScreen> {
   double _lastWidth = 0;
   double _lastHeight = 0;
+  bool _initialized = false;
 
+  @override
+  Widget build(BuildContext context) {
+    final configLayout = context.watch<ConfigLayout>();
+    final canvasSize = configLayout.ratio;
+
+    return Scaffold(
+      body: Center(
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!_initialized) {
+                _updateAspectRatioSize(context, constraints, canvasSize);
+                setState(() {
+                  _initialized = true;
+                });
+              }
+            });
+
+            return AspectRatio(
+              aspectRatio: canvasSize.width / canvasSize.height,
+              child: Container(
+                color: Colors.black,
+                child: Stack(
+                  children: [
+                    Positioned.fill(
+                      child: Image.file(
+                        widget.imageFile,
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    ...configLayout.layers.map((layer) {
+                      return Positioned(
+                        left: layer.dx,
+                        top: layer.dy,
+                        child: EditableLayer(
+                          key: ValueKey(layer.id),
+                          onDelete: configLayout.eliminarLayer,
+                          layer: layer,
+                          onUpdate: (updatedLayer) {
+                            double maxWidth = _lastWidth;
+                            double maxHeight = _lastHeight;
+                            double clampedDx = updatedLayer.dx.clamp(0, maxWidth - updatedLayer.width);
+                            double clampedDy = updatedLayer.dy.clamp(0, maxHeight - updatedLayer.height);
+
+                            int index = configLayout.layers.indexWhere((l) => l.id == layer.id);
+                            if (index != -1) {
+                              configLayout.updateLayer(index, clampedDx, clampedDy, updatedLayer);
+                            }
+                          },
+                          onSelect: _selectLayer,
+                        ),
+                      );
+                    }).toList(),
+                    _buildCornerDot(0, 0),
+                    _buildCornerDot(1, 0),
+                    _buildCornerDot(0, 1),
+                    _buildCornerDot(1, 1),
+
+                    // Posicionamiento correcto del icono después de obtener _lastWidth
+                    if (_initialized)CapaLayoutCollage(width: _lastWidth, height: _lastHeight),
+
+
+                    /*
+                    if (_initialized) Positioned(
+                      top: 20,
+                      right: _lastWidth / 2,
+                      child: Icon(
+                        Icons.star,
+                        size: 50,
+                        color: Colors.amber,
+                      ),
+                    ),
+            */
+            /*
+            ResizableHeart(
+                      initialWidth: 200,
+                      initialHeight: 200,
+                      children: [
+                        Center(
+                          child: Text(
+                            "❤️",
+                            style: TextStyle(fontSize: 40),
+                          ),
+                        ),
+                      ],
+                    )
+                    */
+                    // ResizableStack con tamaño correcto después de inicialización
+/*
+                    if (_initialized) ResizableStack(
+                      initialWidth: _lastWidth ,
+                      initialHeight: _lastHeight,
+                      children: [
+                        Positioned(left: 50, top: 50, child: Icon(Icons.image, size: 50), ),
+                      ],
+                    ),
+*/
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  /*
   @override
   Widget build(BuildContext context) {
     final configLayout = context.watch<ConfigLayout>();
@@ -74,9 +186,19 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                     _buildCornerDot(1, 0), // Esquina superior derecha
                     _buildCornerDot(0, 1), // Esquina inferior izquierda
                     _buildCornerDot(1, 1), // Esquina inferior
-                    ResizableStack(
+                    Positioned(
+                      top: 20,  // Distancia desde arriba
+                      right:  _lastWidth/2, // Distancia desde la derecha
+                      child: Icon(
+                        Icons.star,
+                        size: 50,
+                        color: Colors.amber,
+                      ),
+                    ),
+                    ResizableStack(//corregir o consulytar el width correcto
+                      initialWidth:  _lastWidth/2,//ancho inicioal
                         children: [
-                          Positioned(left: 50, top: 50, child: Icon(Icons.image, size: 50)),
+                          Positioned(left: 50, top: 50, child: Icon(Icons.image, size: 50), ),
                         ]),
 
                   ],
@@ -88,6 +210,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       ),
     );
   }
+  */
 /*
   void _updateAspectRatioSize(BuildContext context, BoxConstraints constraints, Size canvasSize) {
     double newWidth = constraints.maxWidth;
@@ -190,6 +313,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
       _lastWidth = newWidth;
       _lastHeight = newHeight;
     }
+    print("el width actualizado es de $_lastWidth");
   }
 
 /*
