@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:pixelfy/screens/layer/editable_layer.dart';
 import 'package:pixelfy/screens/layers_collage/layout_collage.dart';
 import 'package:pixelfy/screens/layers_collage/resize_layout_stack.dart';
 /***
@@ -9,7 +10,6 @@ import 'package:pixelfy/screens/layers_collage/resize_layout_stack.dart';
  * recibe como parametros el ancho y el alto del area de trabajo segun el
  * aspecradio y se rederiza segun el cambio de aspecto
  */
-
 class CapaLayoutCollage extends StatefulWidget {
 
   double width; //ancho del aspec radio
@@ -17,7 +17,7 @@ class CapaLayoutCollage extends StatefulWidget {
 
   //las imagenes estan en la clase CollagePhoto
 
-   CapaLayoutCollage({super.key, required this.width, required this.height});
+  CapaLayoutCollage({super.key, required this.width, required this.height});
 
   @override
   State<CapaLayoutCollage> createState() => _CapaLayoutCollageState();
@@ -36,15 +36,10 @@ class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
   @override
   Widget build(BuildContext context) {
     return  Stack(children: [
-      ...collagePhoto.listaPosicioes.map((pos)=>  ResizableStack(
-        initialWidth: widget.width ,
+      ...collagePhoto.listaPosicioes.map((pos)=> ResizableStack(
+        initialWidth: widget.width /2,
         initialHeight: widget.height,
-       position: Offset(100, 100),
+        position: pos,
       )).toList()
 
-    ],);
-
-
-
-  }
-}
+    ],);}}

@@ -12,21 +12,76 @@ import 'package:pixelfy/screens/layers_collage/layout_collage.dart';
  */
 
 
-
-
+/*
 class ResizableStack extends StatefulWidget {
-
-  double initialWidth;
-  double initialHeight;
-  Offset position;
-
+  final double initialWidth;
+  final double initialHeight;
+  final Offset position;
 
   ResizableStack({
     Key? key,
     required this.initialWidth,
-    required this.initialHeight ,
-    required this.position
+    required this.initialHeight,
+    required this.position,
+  }) : super(key: key);
 
+  @override
+  _ResizableStackState createState() => _ResizableStackState();
+}
+
+class _ResizableStackState extends State<ResizableStack> {
+  late double width;
+  late double height;
+  late Offset position;
+
+  @override
+  void initState() {
+    super.initState();
+    width = widget.initialWidth;
+    height = widget.initialHeight;
+    position = widget.position;
+  }
+
+  @override
+  void didUpdateWidget(covariant ResizableStack oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialWidth != widget.initialWidth || oldWidget.initialHeight != widget.initialHeight) {
+      setState(() {
+        width = widget.initialWidth;
+        height = widget.initialHeight;
+        position = widget.position;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: position.dx,
+      top: position.dy,
+      child: Container(
+        width: width,
+        height: height,
+        decoration: BoxDecoration(
+          color: Colors.blue.withOpacity(0.2),
+          border: Border.all(color: Colors.blue, width: 2),
+        ),
+        child: Center(child: Icon(Icons.image, size: 50)),
+      ),
+    );
+  }
+}
+*/
+class ResizableStack extends StatefulWidget {
+  final double initialWidth;
+  final double initialHeight;
+  final Offset position;
+
+  ResizableStack({
+    Key? key,
+    required this.initialWidth,
+    required this.initialHeight,
+    required this.position,
   }) : super(key: key);
 
   @override
@@ -42,29 +97,25 @@ class _ResizableStackState extends State<ResizableStack> {
   @override
   void initState() {
     super.initState();
-
-
     width = widget.initialWidth;
     height = widget.initialHeight;
-    position = Offset(100, 100); // Posición inicial en la pantalla
-    print("width es de $width");
+    position = widget.position;
     boxCollage = CollagePhoto(width: width, height: height);
   }
+
 
   void _updateSize(double dx, double dy, {bool fromLeft = false, bool fromTop = false}) {
     setState(() {
       if (fromLeft) {
+        position = position.translate(dx, 0); // Mueve el cuadro hacia la izquierda
         width -= dx;
-        //calcular la posicion de widget esto deberia ir en una clase o un widget que mantenga la forma
-        //para evitar cdigo rrepetido
-       // position = position.translate(dx, 0);
       } else {
         width += dx;
       }
 
       if (fromTop) {
+        position = position.translate(0, dy); // Mueve el cuadro hacia arriba
         height -= dy;
-        //position = position.translate(0, dy);
       } else {
         height += dy;
       }
@@ -75,10 +126,10 @@ class _ResizableStackState extends State<ResizableStack> {
     });
   }
 
-  Widget _buildResizeHandle({required Alignment alignment, required Function(DragUpdateDetails) onDrag}) {
+  Widget _buildResizeHandle({required double left, required double top, required Function(DragUpdateDetails) onDrag}) {
     return Positioned(
-      left: alignment.x == -1 ? 0 : (alignment.x == 1 ? width - 15 : (width - 15) / 2),
-      top: alignment.y == -1 ? 0 : (alignment.y == 1 ? height - 15 : (height - 15) / 2),
+      left: left,
+      top: top,
       child: GestureDetector(
         onPanUpdate: onDrag,
         child: Container(
@@ -95,43 +146,30 @@ class _ResizableStackState extends State<ResizableStack> {
 
   @override
   Widget build(BuildContext context) {
-
-    return box(widget.position);
-
-  }
-// Posición inicial en la pantalla
-  Widget box(  Offset position  ){
-   return  Positioned(
+    return Positioned(
       left: position.dx,
       top: position.dy,
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           Container(
-            width: width/2,
-            height: height/2,
+            width: width,
+            height: height,
             decoration: BoxDecoration(
               color: Colors.blue.withOpacity(0.2),
               border: Border.all(color: Colors.blue, width: 2),
             ),
-            child:  Positioned(left: 50, top: 50, child: Icon(Icons.image, size: 50), )//Stack(children: [ Positioned(left: 50, top: 50, child: Icon(Icons.image, size: 50), ) ,]),
+            child: Center(child: Icon(Icons.image, size: 50)),
           ),
-          // Esquinas
-          /*
-          _buildResizeHandle(alignment: Alignment.topLeft, onDrag: (d) => _updateSize(d.delta.dx, d.delta.dy, fromLeft: true, fromTop: true)),
-          _buildResizeHandle(alignment: Alignment.topRight, onDrag: (d) => _updateSize(d.delta.dx, d.delta.dy, fromTop: true)),
-          _buildResizeHandle(alignment: Alignment.bottomLeft, onDrag: (d) => _updateSize(d.delta.dx, d.delta.dy, fromLeft: true)),
-          _buildResizeHandle(alignment: Alignment.bottomRight, onDrag: (d) => _updateSize(d.delta.dx, d.delta.dy)),
-          */
 
-          // Bordes
-          _buildResizeHandle(alignment: Alignment.centerLeft, onDrag: (d) => _updateSize(d.delta.dx, 0, fromLeft: true)),
-          _buildResizeHandle(alignment: Alignment.centerRight, onDrag: (d) => _updateSize(d.delta.dx, 0)),
-          _buildResizeHandle(alignment: Alignment.topCenter, onDrag: (d) => _updateSize(0, d.delta.dy, fromTop: true)),
-          _buildResizeHandle(alignment: Alignment.bottomCenter, onDrag: (d) => _updateSize(0, d.delta.dy)),
+          // 🔴 Puntos de control colocados correctamente
+          _buildResizeHandle(left: -10, top: height / 2 - 10, onDrag: (d) => _updateSize(d.delta.dx, 0, fromLeft: true)), // Izquierda
+          _buildResizeHandle(left: width - 10, top: height / 2 - 10, onDrag: (d) => _updateSize(d.delta.dx, 0)), // Derecha
+          _buildResizeHandle(left: width / 2 - 10, top: -10, onDrag: (d) => _updateSize(0, d.delta.dy, fromTop: true)), // Arriba
+          _buildResizeHandle(left: width / 2 - 10, top: height - 10, onDrag: (d) => _updateSize(0, d.delta.dy)), // Abajo
+
         ],
       ),
     );
-
   }
 }
-
