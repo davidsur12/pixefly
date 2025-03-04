@@ -6,6 +6,7 @@ import 'package:pixelfy/utils/cadenas.dart';
 
 import 'package:provider/provider.dart';
 import 'package:pixelfy/utils/provider_ratio.dart';
+import 'package:pixelfy/utils/size_ratio.dart';
 
 
 
@@ -17,6 +18,7 @@ void main() async {
       MultiProvider(
         providers: [
           ChangeNotifierProvider(create: (_) => ConfigLayout()),
+          ChangeNotifierProvider(create: (_) => SizeRatio()),
 
         ],
         child: const MyApp(),

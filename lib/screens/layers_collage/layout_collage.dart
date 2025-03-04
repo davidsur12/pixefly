@@ -11,6 +11,10 @@ class CollagePhoto {
   Offset position;
   double scale;
   double rotation;
+  //double widthMin;//ancho minimo
+  //double heightMin;//alto minimo
+
+
   List<Offset> listaPosicioes;
 
   CollagePhoto({

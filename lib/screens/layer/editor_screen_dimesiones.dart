@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:pixelfy/screens/layer/editable_layer.dart';
 import 'package:pixelfy/screens/layers_collage/screeen_capa_layout.dart';
 import 'package:pixelfy/utils/provider_ratio.dart';
+import 'package:pixelfy/utils/size_ratio.dart';
 import 'package:provider/provider.dart';
 import 'package:pixelfy/screens/layer/layer.dart';
 import 'package:pixelfy/screens/layers_collage/resize_layout_stack.dart';
@@ -25,6 +26,13 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
   bool _initialized = false;
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    print("editor collge redibujado"
+        "");
+  }
+  @override
   Widget build(BuildContext context) {
     final configLayout = context.watch<ConfigLayout>();
     final canvasSize = configLayout.ratio;
@@ -34,12 +42,17 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
         child: LayoutBuilder(
           builder: (context, constraints) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
+              _updateAspectRatioSize(context, constraints, canvasSize);
+              /*
               if (!_initialized) {
+
                 _updateAspectRatioSize(context, constraints, canvasSize);
                 setState(() {
                   _initialized = true;
                 });
               }
+
+              */
             });
 
             return AspectRatio(
@@ -81,22 +94,32 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                     _buildCornerDot(1, 0),
                     _buildCornerDot(0, 1),
                     _buildCornerDot(1, 1),
+                    Text("el ancho es de ${_lastWidth}", style: TextStyle(color: Colors.green),),
 
                     // Posicionamiento correcto del icono después de obtener _lastWidth
-                    if (_initialized)CapaLayoutCollage(width: _lastWidth, height: _lastHeight),
+                   // if (_initialized)CapaLayoutCollage(width: _lastWidth, height: _lastHeight),
+
+                      CapaLayoutCollage(
+                      //  key: ValueKey('$_lastWidth-$_lastHeight'), // Combinar ambos valores
+                        key: ValueKey(_lastWidth), // Forzar reconstrucción cuando cambie el tamaño
+                        width:  context.watch<SizeRatio>().width,
+                        height:  context.watch<SizeRatio>().height,//_lastHeight,
+                      ),
 
 
-                    /*
-                    if (_initialized) Positioned(
+                    Positioned(
                       top: 20,
-                      right: _lastWidth / 2,
+                      left: 254,
+                      //right: 0,//_lastWidth / 2,
                       child: Icon(
                         Icons.star,
                         size: 50,
                         color: Colors.amber,
                       ),
                     ),
-            */
+
+
+
             /*
             ResizableHeart(
                       initialWidth: 200,
@@ -131,11 +154,66 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
     );
   }
 
-
-
   void _updateAspectRatioSize(BuildContext context, BoxConstraints constraints, Size canvasSize) {
     double availableWidth = constraints.maxWidth;
     double availableHeight = constraints.maxHeight;
+    final sizeProvider = Provider.of<SizeRatio>(context, listen: false);
+
+    double newWidth, newHeight;
+    if (availableWidth / availableHeight > canvasSize.width / canvasSize.height) {
+      newHeight = availableHeight;
+      newWidth = newHeight * (canvasSize.width / canvasSize.height);
+    } else {
+      newWidth = availableWidth;
+      newHeight = newWidth / (canvasSize.width / canvasSize.height);
+    }
+
+    if (_lastWidth == newWidth && _lastHeight == newHeight) {
+      return; // Evita actualizaciones innecesarias
+    }
+
+    final configLayout = context.read<ConfigLayout>();
+
+    if (_lastWidth > 0 && _lastHeight > 0) {
+      double scaleX = newWidth / _lastWidth;
+      double scaleY = newHeight / _lastHeight;
+
+      List<Layer> updatedLayers = configLayout.layers.map((layer) {
+        double newDx = layer.dx * scaleX;
+        double newDy = layer.dy * scaleY;
+        double newLayerWidth = layer.width * scaleX;
+        double newLayerHeight = layer.height * scaleY;
+
+        newDx = newDx.clamp(0, newWidth - newLayerWidth);
+        newDy = newDy.clamp(0, newHeight - newLayerHeight);
+
+        return layer.copyWith(
+          dx: newDx,
+          dy: newDy,
+          width: newLayerWidth,
+          height: newLayerHeight,
+        );
+      }).toList();
+
+      configLayout.setLayers(updatedLayers);
+    }
+
+    setState(() {
+      _lastWidth = newWidth;
+      _lastHeight = newHeight;
+    });
+
+    sizeProvider.cambioSize(_lastWidth, _lastHeight);
+    print("el width actualizado es de $_lastWidth");
+  }
+
+
+/*
+  void _updateAspectRatioSize(BuildContext context, BoxConstraints constraints, Size canvasSize) {
+    double availableWidth = constraints.maxWidth;
+    double availableHeight = constraints.maxHeight;
+    final sizeProvider = Provider.of<SizeRatio>(context, listen: false);
+
 
     // Calcular el tamaño real del contenedor con AspectRatio
     double newWidth, newHeight;
@@ -180,12 +258,11 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
     if (_lastWidth != newWidth || _lastHeight != newHeight) {
       _lastWidth = newWidth;
       _lastHeight = newHeight;
+      sizeProvider.cambioSize(_lastWidth, _lastHeight );
     }
     print("el width actualizado es de $_lastWidth");
   }
-
-
-
+*/
   void _selectLayer(String id) {
     final configLayout = context.read<ConfigLayout>();
     configLayout.setLayers(
