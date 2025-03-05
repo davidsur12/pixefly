@@ -41,14 +41,9 @@ class CapaLayoutCollage extends StatelessWidget {
 */
 
 
-
-
 class CapaLayoutCollage extends StatefulWidget {
-
-  double width; //ancho del aspec radio
-  double height; //largo del aspecradio
-
-  //las imagenes estan en la clase CollagePhoto
+  final double width;
+  final double height;
 
   CapaLayoutCollage({super.key, required this.width, required this.height});
 
@@ -57,25 +52,181 @@ class CapaLayoutCollage extends StatefulWidget {
 }
 
 class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
-  late CollagePhoto collagePhoto;
+  late double leftWidth;
+  late double rightWidth;
+  double borderRadius = 0.0;
+  double minWidth = 50.0; // Ancho mínimo de cada caja
+  late double maxWidth; // Se calculará dinámicamente
+
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
-    print("el collage tiene un ancho: ${widget.width} y el alto: ${widget.height}");
-    //collagePhoto = CollagePhoto(width: widget.width, height: widget.height);
+    leftWidth = widget.width / 2;
+    rightWidth = widget.width / 2;
+    maxWidth = widget.width * 0.8; // Máximo 80% del total
+    minWidth = widget.width*0.2;
+  }
+
+  void updateLeftSize(double newWidth) {
+    setState(() {
+      double adjustedLeftWidth = newWidth.clamp(minWidth, widget.width - minWidth);
+      double adjustedRightWidth = widget.width - adjustedLeftWidth;
+
+      leftWidth = adjustedLeftWidth;
+      rightWidth = adjustedRightWidth;
+    });
+  }
+
+  void updateRightSize(double newWidth) {
+    setState(() {
+      double adjustedRightWidth = newWidth.clamp(minWidth, widget.width - minWidth);
+      double adjustedLeftWidth = widget.width - adjustedRightWidth;
+
+      rightWidth = adjustedRightWidth;
+      leftWidth = adjustedLeftWidth;
+    });
+  }
+
+ 
+  @override
+  Widget build(BuildContext context) {
+    double h = widget.height;
+
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              ResizableStack(
+                width: leftWidth,
+                height: h,
+                position: Offset(0, 0),
+                maxWidth: widget.width*0.8,
+                minWidth: widget.width*0.2,
+                borderRadius: borderRadius,
+                onResize: (newWidth, _) => updateLeftSize(newWidth),
+              ),
+              ResizableStack(
+                width: rightWidth,
+                height: h,
+                position: Offset(leftWidth, 0),
+                maxWidth: widget.width*0.8,
+                minWidth: widget.width*0.2,
+                borderRadius: borderRadius,
+                onResize: (newWidth, _) => updateRightSize(newWidth),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Text("Radio del Borde: ${borderRadius.toInt()}"),
+              Slider(
+                value: borderRadius,
+                min: 0,
+                max: 50,
+                onChanged: (value) {
+                  setState(() {
+                    borderRadius = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/*
+class CapaLayoutCollage extends StatefulWidget {
+  final double width;
+  final double height;
+
+  CapaLayoutCollage({super.key, required this.width, required this.height});
+
+  @override
+  State<CapaLayoutCollage> createState() => _CapaLayoutCollageState();
+}
+
+class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
+  late double leftWidth;
+  late double rightWidth;
+  double borderRadius = 0.0; // Nuevo estado para el radio del borde
+
+  @override
+  void initState() {
+    super.initState();
+    leftWidth = widget.width / 2;
+    rightWidth = widget.width / 2;
+  }
+
+  void updateLeftSize(double newWidth) {
+    setState(() {
+      leftWidth = newWidth.clamp(50.0, widget.width - 50.0);
+      rightWidth = widget.width - leftWidth;
+    });
+  }
+
+  void updateRightSize(double newWidth) {
+    setState(() {
+      rightWidth = newWidth.clamp(50.0, widget.width - 50.0);
+      leftWidth = widget.width - rightWidth;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    double w =context.watch<SizeRatio>().width;
-    double h =context.watch<SizeRatio>().height;
-    collagePhoto = CollagePhoto(width: w, height: h);
-    return  Stack(children: [
-      ...collagePhoto.listaPosicioes.map((pos)=> ResizableStack(
-        initialWidth: w/2,//widget.width /2,
-        initialHeight: h/2,//widget.height,
-        position: pos,
-      )).toList()
+    double h = widget.height;
 
-    ],);}}
+    return Column(
+      children: [
+        Expanded(
+          child: Stack(
+            children: [
+              ResizableStack(
+                width: leftWidth,
+                height: h,
+                position: Offset(0, 0),
+                borderRadius: borderRadius,
+                onResize: (newWidth, _) => updateLeftSize(newWidth),
+              ),
+              ResizableStack(
+                width: rightWidth,
+                height: h,
+                position: Offset(leftWidth, 0),
+                borderRadius: borderRadius,
+                onResize: (newWidth, _) => updateRightSize(newWidth),
+              ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Column(
+            children: [
+              Text("Radio del Borde: ${borderRadius.toInt()}"),
+              Slider(
+                value: borderRadius,
+                min: 0,
+                max: 50, // Ajusta el valor máximo según necesites
+                onChanged: (value) {
+                  setState(() {
+                    borderRadius = value;
+                  });
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+*/
+
+
+
