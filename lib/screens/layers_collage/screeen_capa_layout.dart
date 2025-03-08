@@ -13,34 +13,387 @@ import 'package:provider/provider.dart';
  * aspecradio y se rederiza segun el cambio de aspecto
  */
 
-/*
-class CapaLayoutCollage extends StatelessWidget {
+class CapaLayoutCollage extends StatefulWidget {
   final double width;
   final double height;
 
-  CapaLayoutCollage({Key? key, required this.width, required this.height}) : super(key: key);
+  CapaLayoutCollage({super.key, required this.width, required this.height});
 
+  @override
+  State<CapaLayoutCollage> createState() => _CapaLayoutCollageState();
+}
 
+class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
+  late double leftWidth;
+  late double rightWidth;
+  double borderRadius = 0.0;
+  double margin = 8.0;
+  late double minWidth;
+  late double maxWidth;
+
+  @override
+  void initState() {
+    super.initState();
+    minWidth = (widget.width - (3 * margin)) * 0.2;
+    maxWidth = (widget.width - (3 * margin)) * 0.8;
+    leftWidth = ((widget.width - (3 * margin)) / 2);
+    rightWidth = ((widget.width - (3 * margin)) / 2);
+  }
+
+  void updateLeftSize(double newWidth) {
+    setState(() {
+      double adjustedLeftWidth = newWidth.clamp(minWidth, widget.width - minWidth - (3 * margin));
+      double adjustedRightWidth = widget.width - adjustedLeftWidth - (3 * margin);
+
+      leftWidth = adjustedLeftWidth;
+      rightWidth = adjustedRightWidth;
+    });
+  }
+
+  void updateRightSize(double newWidth) {
+    setState(() {
+      double adjustedRightWidth = newWidth.clamp(minWidth, widget.width - minWidth - (3 * margin));
+      double adjustedLeftWidth = widget.width - adjustedRightWidth - (3 * margin);
+
+      rightWidth = adjustedRightWidth;
+      leftWidth = adjustedLeftWidth;
+    });
+  }
+
+  void updateMargin(double newMargin) {
+    setState(() {
+      margin = newMargin.clamp(0, widget.width * 0.05);
+      minWidth = (widget.width - (3 * margin)) * 0.2;
+      maxWidth = (widget.width - (3 * margin)) * 0.8;
+      leftWidth = ((widget.width - (3 * margin)) / 2);
+      rightWidth = ((widget.width - (3 * margin)) / 2);
+    });
+  }
+
+  void onBoxClicked(String boxName) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Has hecho clic en $boxName")),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        ...CollagePhoto(width: width, height: height).listaPosicioes.map((pos) =>
-            ResizableStack(
-              key: ValueKey(pos), // Evita que los widgets se pierdan en reconstrucciones
-              initialWidth: width / 2,
-              initialHeight: height,
-              position: pos,
-            )
-        ).toList(),
-      ],
+    double h = widget.height - (2 * margin);
+
+    return Padding(
+      padding: EdgeInsets.all(margin),
+      child: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                ResizableStack(
+                  width: leftWidth,
+                  height: h,
+                  position: Offset(0, 0),
+                  maxWidth: maxWidth,
+                  minWidth: minWidth,
+                  borderRadius: borderRadius,
+                  onResize: (newWidth, _) => updateLeftSize(newWidth),
+                  onTap: () => onBoxClicked("Caja Izquierda"), // ✅ Se pasa el evento onClick
+                ),
+                ResizableStack(
+                  width: rightWidth,
+                  height: h,
+                  position: Offset(leftWidth + margin, 0),
+                  maxWidth: maxWidth,
+                  minWidth: minWidth,
+                  borderRadius: borderRadius,
+                  onResize: (newWidth, _) => updateRightSize(newWidth),
+                  onTap: () => onBoxClicked("Caja Derecha"), // ✅ Se pasa el evento onClick
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Text("Radio del Borde: ${borderRadius.toInt()}"),
+                Slider(
+                  value: borderRadius,
+                  min: 0,
+                  max: 50,
+                  onChanged: (value) {
+                    setState(() {
+                      borderRadius = value;
+                    });
+                  },
+                ),
+                Text("Margen entre cajas y bordes: ${margin.toInt()}"),
+                Slider(
+                  value: margin,
+                  min: 0,
+                  max:  widget.width > 0 ? widget.width * 0.05:1,
+                  onChanged: (value) => updateMargin(value),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/*
+class CapaLayoutCollage extends StatefulWidget {
+  final double width;
+  final double height;
+
+  CapaLayoutCollage({super.key, required this.width, required this.height});
+
+  @override
+  State<CapaLayoutCollage> createState() => _CapaLayoutCollageState();
+}
+
+class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
+  late double leftWidth;
+  late double rightWidth;
+  double borderRadius = 0.0;
+  double margin = 8.0;
+  late double minWidth;
+  late double maxWidth;
+
+  @override
+  void initState() {
+    super.initState();
+    minWidth = (widget.width - (3 * margin)) * 0.2;
+    maxWidth = (widget.width - (3 * margin)) * 0.8;
+    leftWidth = ((widget.width - (3 * margin)) / 2);
+    rightWidth = ((widget.width - (3 * margin)) / 2);
+  }
+
+  void updateLeftSize(double newWidth) {
+    setState(() {
+      double adjustedLeftWidth = newWidth.clamp(minWidth, widget.width - minWidth - (3 * margin));
+      double adjustedRightWidth = widget.width - adjustedLeftWidth - (3 * margin);
+
+      leftWidth = adjustedLeftWidth;
+      rightWidth = adjustedRightWidth;
+    });
+  }
+
+  void updateRightSize(double newWidth) {
+    setState(() {
+      double adjustedRightWidth = newWidth.clamp(minWidth, widget.width - minWidth - (3 * margin));
+      double adjustedLeftWidth = widget.width - adjustedRightWidth - (3 * margin);
+
+      rightWidth = adjustedRightWidth;
+      leftWidth = adjustedLeftWidth;
+    });
+  }
+
+  void updateMargin(double newMargin) {
+    setState(() {
+      margin = newMargin.clamp(0, widget.width * 0.05);
+      minWidth = (widget.width - (3 * margin)) * 0.2;
+      maxWidth = (widget.width - (3 * margin)) * 0.8;
+      leftWidth = ((widget.width - (3 * margin)) / 2);
+      rightWidth = ((widget.width - (3 * margin)) / 2);
+    });
+  }
+
+  void onBoxClicked(String boxName) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Has hecho clic en $boxName")),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double h = widget.height - (2 * margin);
+
+    return Padding(
+      padding: EdgeInsets.all(margin),
+      child: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                ResizableStack(
+                  width: leftWidth,
+                  height: h,
+                  position: Offset(0, 0),
+                  maxWidth: maxWidth,
+                  minWidth: minWidth,
+                  borderRadius: borderRadius,
+                  onResize: (newWidth, _) => updateLeftSize(newWidth),
+                  onTap: () => onBoxClicked("Caja Izquierda"), // ✅ Se pasa el evento onClick
+                ),
+                ResizableStack(
+                  width: rightWidth,
+                  height: h,
+                  position: Offset(leftWidth + margin, 0),
+                  maxWidth: maxWidth,
+                  minWidth: minWidth,
+                  borderRadius: borderRadius,
+                  onResize: (newWidth, _) => updateRightSize(newWidth),
+                  onTap: () => onBoxClicked("Caja Derecha"), // ✅ Se pasa el evento onClick
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Text("Radio del Borde: ${borderRadius.toInt()}"),
+                Slider(
+                  value: borderRadius,
+                  min: 0,
+                  max: 50,
+                  onChanged: (value) {
+                    setState(() {
+                      borderRadius = value;
+                    });
+                  },
+                ),
+                Text("Margen entre cajas y bordes: ${margin.toInt()}"),
+                Slider(
+                  value: margin,
+                  min: 0,
+                  max: widget.width * 0.05,
+                  onChanged: (value) => updateMargin(value),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+*/
+/*
+class CapaLayoutCollage extends StatefulWidget {
+  final double width;
+  final double height;
+
+  CapaLayoutCollage({super.key, required this.width, required this.height});
+
+  @override
+  State<CapaLayoutCollage> createState() => _CapaLayoutCollageState();
+}
+
+class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
+  late double leftWidth;
+  late double rightWidth;
+  double borderRadius = 0.0;
+  double margin = 8.0; // 🔹 Margen inicial aplicado a todos los lados
+  late double minWidth;
+  late double maxWidth;
+
+  @override
+  void initState() {
+    super.initState();
+    minWidth = (widget.width - (3 * margin)) * 0.2;
+    maxWidth = (widget.width - (3 * margin)) * 0.8;
+    leftWidth = ((widget.width - (3 * margin)) / 2);
+    rightWidth = ((widget.width - (3 * margin)) / 2);
+  }
+
+  void updateLeftSize(double newWidth) {
+    setState(() {
+      double adjustedLeftWidth = newWidth.clamp(minWidth, widget.width - minWidth - (3 * margin));
+      double adjustedRightWidth = widget.width - adjustedLeftWidth - (3 * margin);
+
+      leftWidth = adjustedLeftWidth;
+      rightWidth = adjustedRightWidth;
+    });
+  }
+
+  void updateRightSize(double newWidth) {
+    setState(() {
+      double adjustedRightWidth = newWidth.clamp(minWidth, widget.width - minWidth - (3 * margin));
+      double adjustedLeftWidth = widget.width - adjustedRightWidth - (3 * margin);
+
+      rightWidth = adjustedRightWidth;
+      leftWidth = adjustedLeftWidth;
+    });
+  }
+
+  void updateMargin(double newMargin) {
+    setState(() {
+      margin = newMargin.clamp(0, widget.width * 0.05); // 🔹 Límite del margen
+      minWidth = (widget.width - (3 * margin)) * 0.2;
+      maxWidth = (widget.width - (3 * margin)) * 0.8;
+      leftWidth = ((widget.width - (3 * margin)) / 2);
+      rightWidth = ((widget.width - (3 * margin)) / 2);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    double h = widget.height - (2 * margin); // 🔹 Se descuenta el margen superior e inferior
+
+    return Padding(
+      padding: EdgeInsets.all(margin), // 🔹 Margen aplicado alrededor de todo el collage
+      child: Column(
+        children: [
+          Expanded(
+            child: Stack(
+              children: [
+                ResizableStack(
+                  width: leftWidth,
+                  height: h,
+                  position: Offset(0, 0),
+                  maxWidth: maxWidth,
+                  minWidth: minWidth,
+                  borderRadius: borderRadius,
+                  onResize: (newWidth, _) => updateLeftSize(newWidth),
+                ),
+                ResizableStack(
+                  width: rightWidth,
+                  height: h,
+                  position: Offset(leftWidth + margin, 0), // 🔹 Margen entre las cajas
+                  maxWidth: maxWidth,
+                  minWidth: minWidth,
+                  borderRadius: borderRadius,
+                  onResize: (newWidth, _) => updateRightSize(newWidth),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              children: [
+                Text("Radio del Borde: ${borderRadius.toInt()}"),
+                Slider(
+                  value: borderRadius,
+                  min: 0,
+                  max: 50,
+                  onChanged: (value) {
+                    setState(() {
+                      borderRadius = value;
+                    });
+                  },
+                ),
+                Text("Margen entre cajas y bordes: ${margin.toInt()}"),
+                Slider(
+                  value: margin,
+                  min: 0,
+                  max: widget.width * 0.05, // 🔹 Ajuste de margen hasta 5% del ancho total
+                  onChanged: (value) => updateMargin(value),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 */
 
-
+/*
 class CapaLayoutCollage extends StatefulWidget {
   final double width;
   final double height;
@@ -87,7 +440,7 @@ class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
     });
   }
 
- 
+
   @override
   Widget build(BuildContext context) {
     double h = widget.height;
@@ -141,92 +494,9 @@ class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
   }
 }
 
-/*
-class CapaLayoutCollage extends StatefulWidget {
-  final double width;
-  final double height;
-
-  CapaLayoutCollage({super.key, required this.width, required this.height});
-
-  @override
-  State<CapaLayoutCollage> createState() => _CapaLayoutCollageState();
-}
-
-class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
-  late double leftWidth;
-  late double rightWidth;
-  double borderRadius = 0.0; // Nuevo estado para el radio del borde
-
-  @override
-  void initState() {
-    super.initState();
-    leftWidth = widget.width / 2;
-    rightWidth = widget.width / 2;
-  }
-
-  void updateLeftSize(double newWidth) {
-    setState(() {
-      leftWidth = newWidth.clamp(50.0, widget.width - 50.0);
-      rightWidth = widget.width - leftWidth;
-    });
-  }
-
-  void updateRightSize(double newWidth) {
-    setState(() {
-      rightWidth = newWidth.clamp(50.0, widget.width - 50.0);
-      leftWidth = widget.width - rightWidth;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    double h = widget.height;
-
-    return Column(
-      children: [
-        Expanded(
-          child: Stack(
-            children: [
-              ResizableStack(
-                width: leftWidth,
-                height: h,
-                position: Offset(0, 0),
-                borderRadius: borderRadius,
-                onResize: (newWidth, _) => updateLeftSize(newWidth),
-              ),
-              ResizableStack(
-                width: rightWidth,
-                height: h,
-                position: Offset(leftWidth, 0),
-                borderRadius: borderRadius,
-                onResize: (newWidth, _) => updateRightSize(newWidth),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: [
-              Text("Radio del Borde: ${borderRadius.toInt()}"),
-              Slider(
-                value: borderRadius,
-                min: 0,
-                max: 50, // Ajusta el valor máximo según necesites
-                onChanged: (value) {
-                  setState(() {
-                    borderRadius = value;
-                  });
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
 */
+
+
 
 
 
