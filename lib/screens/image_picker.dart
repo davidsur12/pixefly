@@ -6,8 +6,325 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:file_picker/file_picker.dart';
 
 
+
+class ImagePickerImage extends StatefulWidget {
+  @override
+  _ImagePickerScreenState createState() => _ImagePickerScreenState();
+}
+
+
+
+
+class _ImagePickerScreenState extends State<ImagePickerImage> {
+  static const platform = MethodChannel("com.pixelfy.image_picker");
+  List<String> _directories = [];
+  String? _selectedDirectory;
+  List<File> _images = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    if (await Permission.storage.request().isGranted ||
+        await Permission.photos.request().isGranted) {
+      _loadDirectories();
+    } else {
+      print("❌ Permiso denegado. No se puede acceder a las imágenes.");
+      openAppSettings();
+    }
+  }
+
+  Future<void> _loadDirectories() async {
+    try {
+      final List<dynamic> result = await platform.invokeMethod("getImageFolders");
+      print("Carpetas detectadas: $result");
+
+      setState(() {
+        _directories = ["Recientes", ...result.cast<String>(), "Otro"]; // Agregar "Otro"
+        _selectedDirectory = "Recientes";
+        _loadImages();
+      });
+    } on PlatformException catch (e) {
+      print("Error al obtener carpetas: ${e.message}");
+    }
+  }
+
+  Future<void> _openFileExplorer() async {
+    String? selectedPath = await FilePicker.platform.getDirectoryPath();
+
+    if (selectedPath != null) {
+      setState(() {
+        _selectedDirectory = selectedPath;
+        _loadImages();
+      });
+    } else {
+      // Si el usuario cancela, volver a la última opción seleccionada
+      setState(() {
+        _selectedDirectory = "Recientes";
+        _loadImages();
+      });
+    }
+  }
+
+  Future<void> _loadImages() async {
+    if (_selectedDirectory == "Recientes") {
+      _loadRecentImages();
+      return;
+    }
+
+    if (_selectedDirectory == null || _selectedDirectory == "Otro") return;
+
+    List<File> images = [];
+    List<FileSystemEntity> files = Directory(_selectedDirectory!).listSync();
+
+    for (var file in files) {
+      if (file is File && _isImageFile(file.path)) {
+        images.add(file);
+      }
+    }
+
+    setState(() {
+      _images = images;
+    });
+  }
+
+  bool _isImageFile(String path) {
+    return path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png');
+  }
+
+  Future<void> _loadRecentImages() async {
+    List<File> allImages = [];
+
+    for (String dirPath in _directories.where((dir) => dir != "Recientes" && dir != "Otro")) {
+      Directory dir = Directory(dirPath);
+      if (!dir.existsSync()) continue;
+
+      List<FileSystemEntity> files = dir.listSync();
+      for (var file in files) {
+        if (file is File && _isImageFile(file.path)) {
+          allImages.add(file);
+        }
+      }
+    }
+
+    allImages.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+    setState(() {
+      _images = allImages.take(50).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Seleccionar Imagen")),
+      body: Column(
+        children: [
+          if (_directories.isNotEmpty)
+            DropdownButton<String>(
+              value: _selectedDirectory,
+              items: _directories.map((dir) {
+                return DropdownMenuItem(
+                  value: dir,
+                  child: Text(
+                    dir == "Recientes"
+                        ? "📷 Recientes"
+                        : dir == "Otro"
+                        ? "📂 Otro..."
+                        : dir.split('/').last,
+                  ),
+                );
+              }).toList(),
+              onChanged: (newDir) {
+                if (newDir == "Otro") {
+                  _openFileExplorer();
+                } else {
+                  setState(() {
+                    _selectedDirectory = newDir;
+                    _loadImages();
+                  });
+                }
+              },
+            ),
+
+          Expanded(
+            child: _images.isEmpty
+                ? Center(child: Text("No hay imágenes en esta carpeta"))
+                : GridView.builder(
+              padding: EdgeInsets.all(10),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 4,
+              ),
+              itemCount: _images.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    print("Imagen seleccionada: ${_images[index].path}");
+                  },
+                  child: Image.file(
+                    _images[index],
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+/*
+class _ImagePickerScreenState extends State<ImagePickerImage> {
+  static const platform = MethodChannel("com.pixelfy.image_picker");
+  List<String> _directories = [];
+  String? _selectedDirectory;
+  List<File> _images = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    if (await Permission.storage.request().isGranted ||
+        await Permission.photos.request().isGranted) {
+      _loadDirectories();
+    } else {
+      print("❌ Permiso denegado. No se puede acceder a las imágenes.");
+      openAppSettings();
+    }
+  }
+
+  Future<void> _loadDirectories() async {
+    try {
+      final List<dynamic> result = await platform.invokeMethod("getImageFolders");
+      print("Carpetas detectadas: $result");
+
+      setState(() {
+        _directories = ["Recientes", ...result.cast<String>()]; // Agregar opción "Recientes"
+        _selectedDirectory = "Recientes";
+        _loadImages();
+      });
+    } on PlatformException catch (e) {
+      print("Error al obtener carpetas: ${e.message}");
+    }
+  }
+
+  Future<void> _loadImages() async {
+    if (_selectedDirectory == "Recientes") {
+      _loadRecentImages();
+      return;
+    }
+
+    if (_selectedDirectory == null) return;
+
+    List<File> images = [];
+    List<FileSystemEntity> files = Directory(_selectedDirectory!).listSync();
+
+    for (var file in files) {
+      if (file is File && _isImageFile(file.path)) {
+        images.add(file);
+      }
+    }
+
+    setState(() {
+      _images = images;
+    });
+  }
+
+  bool _isImageFile(String path) {
+    return path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png');
+  }
+
+  Future<void> _loadRecentImages() async {
+    List<File> allImages = [];
+
+    for (String dirPath in _directories.where((dir) => dir != "Recientes")) {
+      Directory dir = Directory(dirPath);
+      if (!dir.existsSync()) continue;
+
+      List<FileSystemEntity> files = dir.listSync();
+      for (var file in files) {
+        if (file is File && _isImageFile(file.path)) {
+          allImages.add(file);
+        }
+      }
+    }
+
+    allImages.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+
+    setState(() {
+      _images = allImages.take(50).toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Seleccionar Imagen")),
+      body: Column(
+        children: [
+          if (_directories.isNotEmpty)
+            DropdownButton<String>(
+              value: _selectedDirectory,
+              items: _directories.map((dir) {
+                return DropdownMenuItem(
+                  value: dir,
+                  child: Text(dir == "Recientes" ? "📷 Recientes" : dir.split('/').last),
+                );
+              }).toList(),
+              onChanged: (newDir) {
+                setState(() {
+                  _selectedDirectory = newDir;
+                  _loadImages();
+                });
+              },
+            ),
+
+          Expanded(
+            child: _images.isEmpty
+                ? Center(child: Text("No hay imágenes en esta carpeta"))
+                : GridView.builder(
+              padding: EdgeInsets.all(10),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 4,
+                mainAxisSpacing: 4,
+              ),
+              itemCount: _images.length,
+              itemBuilder: (context, index) {
+                return GestureDetector(
+                  onTap: () {
+                    print("Imagen seleccionada: ${_images[index].path}");
+                  },
+                  child: Image.file(
+                    _images[index],
+                    fit: BoxFit.cover,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+*/
+/*
 class ImagePickerImage extends StatefulWidget {
   @override
   _ImagePickerScreenState createState() => _ImagePickerScreenState();
@@ -149,128 +466,8 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
   }
 }
 
-
-
-/*
-class ImagePickerImage extends StatefulWidget {
-  @override
-  _ImagePickerScreenState createState() => _ImagePickerScreenState();
-}
-
-class _ImagePickerScreenState extends State<ImagePickerImage> {
-  List<Directory> _directories = [];
-  Directory? _selectedDirectory;
-  List<File> _images = [];
-
-  @override
-  void initState() {
-    super.initState();
-    _loadDirectories();
-  }
-
-  Future<void> _loadDirectories() async {
-    List<Directory> dirs = await getImageDirectories();
-    setState(() {
-      _directories = dirs;
-      _selectedDirectory = dirs.isNotEmpty ? dirs[0] : null;
-      _loadImages();
-    });
-  }
-
-  Future<void> _loadImages() async {
-    if (_selectedDirectory == null) return;
-
-    List<File> images = [];
-    List<FileSystemEntity> files = _selectedDirectory!.listSync();
-
-    for (var file in files) {
-      if (file is File && _isImageFile(file.path)) {
-        images.add(file);
-      }
-    }
-
-    setState(() {
-      _images = images;
-    });
-  }
-
-  bool _isImageFile(String path) {
-    return path.endsWith('.jpg') || path.endsWith('.jpeg') || path.endsWith('.png');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Seleccionar Imagen")),
-      body: Column(
-        children: [
-          // Dropdown para seleccionar carpeta
-          DropdownButton<Directory>(
-            value: _selectedDirectory,
-            items: _directories.map((dir) {
-              return DropdownMenuItem(
-                value: dir,
-                child: Text(dir.path.split('/').last), // Muestra solo el nombre de la carpeta
-              );
-            }).toList(),
-            onChanged: (newDir) {
-              setState(() {
-                _selectedDirectory = newDir;
-                _loadImages();
-              });
-            },
-          ),
-
-          // Mostrar imágenes
-          Expanded(
-            child: GridView.builder(
-              padding: EdgeInsets.all(10),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
-              ),
-              itemCount: _images.length,
-              itemBuilder: (context, index) {
-                return GestureDetector(
-                  onTap: () {
-                    // Aquí puedes manejar la selección de la imagen
-                    print("Imagen seleccionada: ${_images[index].path}");
-                  },
-                  child: Image.file(
-                    _images[index],
-                    fit: BoxFit.cover,
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<List<Directory>> getImageDirectories() async {
-    Directory storageDir = Directory('/storage/emulated/0/');
-    List<String> folders = [
-      'DCIM',
-      'Download',
-      'Pictures',
-      'Screenshots',
-      'WhatsApp/Media/WhatsApp Images',
-    ];
-
-    List<Directory> directories = [];
-    for (String folder in folders) {
-      Directory dir = Directory('${storageDir.path}$folder');
-      if (await dir.exists()) {
-        directories.add(dir);
-      }
-    }
-    return directories;
-  }
-}
 */
+
 
 
 
