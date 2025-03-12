@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:pixelfy/main.dart';
 import 'package:pixelfy/screens/layer/editor_screen_dimesiones.dart';
 import 'dart:io';
 import 'package:pixelfy/screens/layer/layer.dart';
-import 'package:pixelfy/screens/layer/editable_layer.dart';
 import 'package:pixelfy/screens/widgets/widget_ratio.dart';
 import 'package:pixelfy/utils/provider_ratio.dart';
 import 'package:uuid/uuid.dart'; // 📌 Para generar IDs únicos

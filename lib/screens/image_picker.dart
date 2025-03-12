@@ -1,14 +1,10 @@
-
-
-
-
-
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pixelfy/utils/cadenas.dart';
 
 class ImagePickerImage extends StatefulWidget {
   @override
@@ -29,19 +25,21 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
   }
 
   Future<void> _requestPermissions() async {
+    //pide y verifica permisos para poder acceder al almacenamiento del telefono
     if (await Permission.storage.request().isGranted ||
         await Permission.photos.request().isGranted) {
       _loadDirectories();
     } else {
-      print("❌ Permiso denegado. No se puede acceder a las imágenes.");
+      print("Permiso denegado. No se puede acceder a las imágenes.");
       openAppSettings();
     }
   }
 
   Future<void> _loadDirectories() async {
+    //carga o detecta los directorios que contienen imagenes o fotos
     try {
       final List<dynamic> result =
-      await platform.invokeMethod("getImageFolders");
+          await platform.invokeMethod("getImageFolders");
       print("Carpetas detectadas: $result");
 
       setState(() {
@@ -102,7 +100,7 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
     List<File> allImages = [];
 
     for (String dirPath
-    in _directories.where((dir) => dir != "Recientes" && dir != "Otro")) {
+        in _directories.where((dir) => dir != "Recientes" && dir != "Otro")) {
       Directory dir = Directory(dirPath);
       if (!dir.existsSync()) continue;
 
@@ -114,7 +112,8 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
       }
     }
 
-    allImages.sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+    allImages
+        .sort((a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()));
 
     setState(() {
       _images = allImages.take(50).toList();
@@ -124,7 +123,7 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
   void _selectImage(File image) {
     if (_selectedImages.length >= 20) {
       Fluttertoast.showToast(
-        msg: "Límite alcanzado: solo puedes seleccionar hasta 20 imágenes.",
+        msg: Cadenas.get("limite"),
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
       );
@@ -149,7 +148,7 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
           children: [
             Icon(Icons.image, color: Colors.white),
             SizedBox(width: 8),
-            Text("Seleccionar Imagen"),
+            Text(Cadenas.get("seleccionar_imagen")),
           ],
         ),
         flexibleSpace: Container(
@@ -181,17 +180,23 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                     value: _selectedDirectory,
                     isExpanded: true,
                     icon: Icon(Icons.folder_open, color: Colors.blue),
+                    //menu desplegable con todas los directorios encontrados
                     items: _directories.map((dir) {
                       return DropdownMenuItem(
                         value: dir,
                         child: Text(
-                          dir == "Recientes" ? "📷 Recientes" : dir == "Otro" ? "📂 Otro..." : dir.split('/').last,
+                          dir == Cadenas.get("recientes")
+                              ? Cadenas.get("recientes")
+                              : dir == Cadenas.get("otro")
+                                  ? Cadenas.get("otro")
+                                  : dir.split('/').last,
                           style: TextStyle(fontSize: 16),
                         ),
                       );
                     }).toList(),
+
                     onChanged: (newDir) {
-                      if (newDir == "Otro") {
+                      if (newDir == Cadenas.get("otro")) {
                         _openFileExplorer();
                       } else {
                         setState(() {
@@ -208,45 +213,52 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
           // Galería de imágenes
           Expanded(
             child: _images.isEmpty
-                ? Center(child: Text("No hay imágenes en esta carpeta", style: TextStyle(fontSize: 18, color: Colors.grey)))
+                ? Center(
+                    child: Text(Cadenas.get("sin_imagenes"),
+                        style: TextStyle(fontSize: 18, color: Colors.grey)))
                 : GridView.builder(
-              padding: EdgeInsets.all(10),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 4,
-                mainAxisSpacing: 4,
-              ),
-              itemCount: _images.length,
-              itemBuilder: (context, index) {
-                final image = _images[index];
-                final count = _getImageCount(image);
+                    padding: EdgeInsets.all(10),
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 4,
+                      mainAxisSpacing: 4,
+                    ),
+                    itemCount: _images.length,
+                    itemBuilder: (context, index) {
+                      final image = _images[index];
+                      final count = _getImageCount(image);
 
-                return GestureDetector(
-                  onTap: () => _selectImage(image),
-                  child: Stack(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.file(image, fit: BoxFit.cover, width: double.infinity, height: double.infinity),
-                      ),
-                      if (count > 0)
-                        Positioned(
-                          top: 5,
-                          right: 5,
-                          child: CircleAvatar(
-                            backgroundColor: Colors.blueAccent,
-                            radius: 14,
-                            child: Text(
-                              "$count",
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      return GestureDetector(
+                        onTap: () => _selectImage(image),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Image.file(image,
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity),
                             ),
-                          ),
+                            if (count > 0)
+                              Positioned(
+                                top: 5,
+                                right: 5,
+                                child: CircleAvatar(
+                                  backgroundColor: Colors.blueAccent,
+                                  radius: 14,
+                                  child: Text(
+                                    "$count",
+                                    style: TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
-                    ],
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
 
           // Contador de imágenes seleccionadas con botón de eliminar
@@ -268,7 +280,10 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                         SizedBox(width: 8),
                         Text(
                           "Imágenes: ${_selectedImages.length}/20",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.blue[800]),
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue[800]),
                         ),
                       ],
                     ),
@@ -277,11 +292,14 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                     onPressed: () => _showDeleteConfirmationDialog(),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.red,
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8)),
                     ),
                     icon: Icon(Icons.delete, color: Colors.white),
-                    label: Text("Eliminar", style: TextStyle(color: Colors.white)),
+                    label:
+                        Text("Eliminar", style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),
@@ -304,7 +322,8 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: Image.file(_selectedImages[index], width: 90, height: 90, fit: BoxFit.cover),
+                          child: Image.file(_selectedImages[index],
+                              width: 90, height: 90, fit: BoxFit.cover),
                         ),
                         GestureDetector(
                           onTap: () {
@@ -315,7 +334,8 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                           child: CircleAvatar(
                             backgroundColor: Colors.red,
                             radius: 14,
-                            child: Icon(Icons.close, size: 16, color: Colors.white),
+                            child: Icon(Icons.close,
+                                size: 16, color: Colors.white),
                           ),
                         ),
                       ],
@@ -328,8 +348,11 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
             Padding(
               padding: EdgeInsets.all(16),
               child: Text(
-                "No se han seleccionado imágenes",
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.grey),
+                Cadenas.get("no_seleccion"),
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey),
               ),
             ),
         ],
@@ -343,19 +366,22 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           title: Row(
             children: [
               Icon(Icons.warning_amber_rounded, color: Colors.red),
               SizedBox(width: 8),
-              Text("Confirmación"),
+              Text(Cadenas.get("confirmacion")),
             ],
           ),
-          content: Text("¿Eliminar todas las imágenes seleccionadas?", style: TextStyle(fontSize: 16)),
+          content: Text(Cadenas.get("eliminar_imagenes"),
+              style: TextStyle(fontSize: 16)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancelar", style: TextStyle(color: Colors.grey[800])),
+              child:
+                  Text(Cadenas.get("cancelar"), style: TextStyle(color: Colors.grey[800])),
             ),
             ElevatedButton(
               onPressed: () {
@@ -365,23 +391,14 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-              child: Text("Eliminar", style: TextStyle(color: Colors.white)),
+              child: Text(Cadenas.get("eliminar"), style: TextStyle(color: Colors.white)),
             ),
           ],
         );
       },
     );
   }
-
-
 }
-
-
-
-
-
-
-
 
 /*
 class ImagePickerImage extends StatefulWidget {
@@ -443,4 +460,3 @@ class _ImagePickerImageState extends State<ImagePickerImage> {
 
 }
 */
-

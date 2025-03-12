@@ -6,7 +6,7 @@ import 'package:pixelfy/utils/provider_ratio.dart';
 import 'package:pixelfy/utils/size_ratio.dart';
 import 'package:provider/provider.dart';
 import 'package:pixelfy/screens/layer/layer.dart';
-import 'package:pixelfy/screens/layers_collage/resize_layout_stack.dart';
+
 
 /***
  * editor principal donde podemos cambiar las opcines basicas del canvas
@@ -43,16 +43,7 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
           builder: (context, constraints) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _updateAspectRatioSize(context, constraints, canvasSize);
-              /*
-              if (!_initialized) {
 
-                _updateAspectRatioSize(context, constraints, canvasSize);
-                setState(() {
-                  _initialized = true;
-                });
-              }
-
-              */
             });
 
             return AspectRatio(

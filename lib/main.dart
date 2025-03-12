@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:pixelfy/screens/editor.dart';
+import 'package:pixelfy/screens/home/screeen_home.dart';
 import 'package:pixelfy/screens/image_picker.dart';
 import 'package:pixelfy/utils/cadenas.dart';
 
@@ -41,7 +42,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home:ImagePickerImage() //Editor()//const MyHomePage(title: 'Flutter Demo Home Page'),
+      home:ScreenHome(),//ImagePickerImage() //Editor()//const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }

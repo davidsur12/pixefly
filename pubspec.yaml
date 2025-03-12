@@ -45,6 +45,8 @@ dependencies:
   path_provider: ^2.1.5
   file_picker: ^9.0.2
   fluttertoast: ^8.2.12
+  google_fonts: ^6.2.1
+  carousel_slider: ^5.0.0
 
 dev_dependencies:
   flutter_test:

@@ -1,11 +1,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:pixelfy/screens/layer/layer.dart';
-import 'package:pixelfy/screens/widgets/widget_ratio.dart';
-import 'package:pixelfy/utils/provider_ratio.dart';
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
 
 /*
 class EditableLayer extends StatelessWidget {

@@ -14,7 +14,20 @@
   "texto": "Texto",
   "configuraciones": "configuraciónes",
   "jugar": "JUGAR",
-  "Nivel_completado": "Nivel Completado"
+  "Nivel_completado": "Nivel Completado",
+  "seleccionar_imagen":"Seleccionar Imagen",
+  "recientes": "Recientes",
+  "otro": "Otro",
+  "sin_imagenes": "No hay imágenes en esta carpeta",
+  "no_seleccion": "No se han seleccionado imágenes",
+  "confirmacion": "Confirmación",
+  "eliminar_imagenes": "¿Eliminar todas las imágenes seleccionadas?",
+  "cancelar": "Cancelar",
+  "eliminar": "Eliminar",
+  "limite": "Límite alcanzado: solo puedes seleccionar hasta 20 imágenes.",
+  "collage": "Collage",
+  "template": "Plantillas",
+  "edit": "Editar Imagen"
 
 
 }
