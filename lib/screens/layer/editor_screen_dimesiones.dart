@@ -51,13 +51,54 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
               child: Container(
                 color: Colors.black,
                 child: Stack(
+
+                  //imagen de fondo
+
                   children: [
+/*
                     Positioned.fill(
                       child: Image.file(
                         widget.imageFile,
                         fit: BoxFit.contain,
                       ),
                     ),
+*/
+                  //los 4 puntos de refencia
+
+                    _buildCornerDot(0, 0),
+                    _buildCornerDot(1, 0),
+                    _buildCornerDot(0, 1),
+                    _buildCornerDot(1, 1),
+                    //texto informativo
+
+                    Text("el ancho es de ${_lastWidth}", style: TextStyle(color: Colors.green),),
+
+                    // Posicionamiento correcto del icono después de obtener _lastWidth
+                   // if (_initialized)CapaLayoutCollage(width: _lastWidth, height: _lastHeight),
+
+                    //capa de cajas responsivas del diseño del layout
+                    /*
+                    aquie s deberia ir los layouts segun las imagenes y  el layout selecionado
+                     */
+                      CapaLayoutCollage(
+                      //  key: ValueKey('$_lastWidth-$_lastHeight'), // Combinar ambos valores
+                        key: ValueKey(_lastWidth), // Forzar reconstrucción cuando cambie el tamaño
+                        width:  context.watch<SizeRatio>().width,
+                        height:  context.watch<SizeRatio>().height,//_lastHeight,
+                      ),
+
+//estrella
+                    Positioned(
+                      top: 20,
+                      left: 254,
+                      //right: 0,//_lastWidth / 2,
+                      child: Icon(
+                        Icons.star,
+                        size: 50,
+                        color: Colors.amber,
+                      ),
+                    ),
+
                     ...configLayout.layers.map((layer) {
                       return Positioned(
                         left: layer.dx,
@@ -81,35 +122,6 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                         ),
                       );
                     }).toList(),
-                    _buildCornerDot(0, 0),
-                    _buildCornerDot(1, 0),
-                    _buildCornerDot(0, 1),
-                    _buildCornerDot(1, 1),
-                    Text("el ancho es de ${_lastWidth}", style: TextStyle(color: Colors.green),),
-
-                    // Posicionamiento correcto del icono después de obtener _lastWidth
-                   // if (_initialized)CapaLayoutCollage(width: _lastWidth, height: _lastHeight),
-
-                      CapaLayoutCollage(
-                      //  key: ValueKey('$_lastWidth-$_lastHeight'), // Combinar ambos valores
-                        key: ValueKey(_lastWidth), // Forzar reconstrucción cuando cambie el tamaño
-                        width:  context.watch<SizeRatio>().width,
-                        height:  context.watch<SizeRatio>().height,//_lastHeight,
-                      ),
-
-
-                    Positioned(
-                      top: 20,
-                      left: 254,
-                      //right: 0,//_lastWidth / 2,
-                      child: Icon(
-                        Icons.star,
-                        size: 50,
-                        color: Colors.amber,
-                      ),
-                    ),
-
-
 
             /*
             ResizableHeart(

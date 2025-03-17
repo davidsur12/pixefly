@@ -4,7 +4,22 @@ import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:pixelfy/screens/editor.dart';
 import 'package:pixelfy/utils/cadenas.dart';
+import 'package:pixelfy/utils/images_seleccionadas.dart';
+import 'package:pixelfy/utils/toast_personalisados.dart';
+import 'package:provider/provider.dart';
+
+
+/****
+ * Esta clase es un image picker personalisado que tiene las siguientes funciones
+ * -) seleciona multiples images hasta  20 imagenes como maxino
+ * -) agrega las magenes a una lista que sepuede visualisar  en la parte de abajo
+ * -) puede eliminar una por una de las imagenes selcionadas o todas con el boton eliminar
+ * -) entrega las imagenes selcionadas en una lista  List<File> _selectedImages
+ *  -) al selecionar las imagenes en el  boton siguiente se se dirigue a la pantalla
+ * EditorScreen que es eleditor de collaguecon las imagenes seleiconadas
+ */
 
 class ImagePickerImage extends StatefulWidget {
   @override
@@ -142,27 +157,78 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+      appBar:
+      AppBar(
+        backgroundColor: Color(0xFF13293e),
+        iconTheme: IconThemeData(
+          color: Colors.white, // Color del botón de retroceso
+        ),
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+        //  mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.image, color: Colors.white),
-            SizedBox(width: 8),
-            Text(Cadenas.get("seleccionar_imagen")),
+           // Icon(Icons.image, color: Colors.white),
+
+            Text(Cadenas.get("app_name"), style: TextStyle(color: Colors.white) ,),
           ],
         ),
-        flexibleSpace: Container(
+        /*
+          flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.blue, Colors.purple],
+              colors: [Colors.blue, Colors.blue],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
           ),
         ),
-        centerTitle: true,
-      ),
-      body: Column(
+
+       */
+       // centerTitle: true,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            child: ElevatedButton(
+              onPressed: () {
+                print("presionado");
+                if(_selectedImages.isNotEmpty){
+                  //si se han selecionado imagenes
+                  Provider.of<ImagesSeleccionadas>(context, listen: false).imagenesSelecionadas(_selectedImages);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => EditorScreen(imageFile:  _selectedImages)),
+                  );
+                }
+                else{
+                  /*
+                   si el ususario no a elecionado imagenes  muestr un toast
+                  para que seleciona algunas imagenes
+                  */
+                  ToastPersonalisado.showToasSimple(context, Cadenas.get("imagenes_no_selecionadas"));
+
+                }
+                // Navegar a otra pantalla
+                /*
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => EditorScreen(imageFile: imageFile)),
+                )
+                    */
+              },
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20), // Bordes redondeados
+                ),
+                backgroundColor: Color(0xFFf66b0e), // Color del botón
+                foregroundColor: Colors.white, // Color del texto/icono
+              ),
+              child: Text(Cadenas.get("siguiente"), style: TextStyle(color: Colors.white),),
+            ),
+          ),
+        ],
+      )
+,
+
+        body: Column(
         children: [
           // Dropdown estilizado
           if (_directories.isNotEmpty)
@@ -173,13 +239,13 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blueAccent, width: 1.5),
+                  border: Border.all(color: Color(0xFF13293e), width: 1.5),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
                     value: _selectedDirectory,
                     isExpanded: true,
-                    icon: Icon(Icons.folder_open, color: Colors.blue),
+                    icon: Icon(Icons.folder_open, color: Color(0xFF13293e)),
                     //menu desplegable con todas los directorios encontrados
                     items: _directories.map((dir) {
                       return DropdownMenuItem(
@@ -244,7 +310,7 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                                 top: 5,
                                 right: 5,
                                 child: CircleAvatar(
-                                  backgroundColor: Colors.blueAccent,
+                                  backgroundColor:Color(0xFFf66b0e),
                                   radius: 14,
                                   child: Text(
                                     "$count",
@@ -276,14 +342,14 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.photo_library, color: Colors.blue),
+                        Icon(Icons.photo_library, color: Color(0xFF13293e)),
                         SizedBox(width: 8),
                         Text(
                           "Imágenes: ${_selectedImages.length}/20",
                           style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue[800]),
+                              color: Color(0xFF13293e)),
                         ),
                       ],
                     ),
@@ -291,7 +357,7 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                   ElevatedButton.icon(
                     onPressed: () => _showDeleteConfirmationDialog(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red,
+                      backgroundColor: Color(0xFF13293e),
                       padding:
                           EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       shape: RoundedRectangleBorder(
@@ -299,7 +365,7 @@ class _ImagePickerScreenState extends State<ImagePickerImage> {
                     ),
                     icon: Icon(Icons.delete, color: Colors.white),
                     label:
-                        Text("Eliminar", style: TextStyle(color: Colors.white)),
+                        Text(Cadenas.get("eliminar"), style: TextStyle(color: Colors.white)),
                   ),
                 ],
               ),

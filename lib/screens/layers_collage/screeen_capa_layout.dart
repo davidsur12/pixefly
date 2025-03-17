@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:pixelfy/screens/layer/editable_layer.dart';
 import 'package:pixelfy/screens/layers_collage/layout_collage.dart';
 import 'package:pixelfy/screens/layers_collage/resize_layout_stack.dart';
+import 'package:pixelfy/utils/images_seleccionadas.dart';
 import 'package:pixelfy/utils/size_ratio.dart';
 import 'package:provider/provider.dart';
 /***
@@ -96,6 +97,8 @@ class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
                   borderRadius: borderRadius,
                   onResize: (newWidth, _) => updateLeftSize(newWidth),
                   onTap: () => onBoxClicked("Caja Izquierda"), // ✅ Se pasa el evento onClick
+                 // DoubleeOnTap: () => onBoxClicked("doble tap Caja izquierda"),
+                  image:Provider.of<ImagesSeleccionadas>(context).selectedImages[0] ,
                 ),
                 ResizableStack(
                   width: rightWidth,
@@ -106,6 +109,8 @@ class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
                   borderRadius: borderRadius,
                   onResize: (newWidth, _) => updateRightSize(newWidth),
                   onTap: () => onBoxClicked("Caja Derecha"), // ✅ Se pasa el evento onClick
+                //  DoubleeOnTap: () => onBoxClicked("doble tap Caja Derecha"),
+                  image:Provider.of<ImagesSeleccionadas>(context).selectedImages[1] ,
                 ),
               ],
             ),
@@ -269,8 +274,8 @@ class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
     );
   }
 }
-
 */
+
 /*
 class CapaLayoutCollage extends StatefulWidget {
   final double width;
@@ -493,8 +498,8 @@ class _CapaLayoutCollageState extends State<CapaLayoutCollage> {
     );
   }
 }
-
 */
+
 
 
 

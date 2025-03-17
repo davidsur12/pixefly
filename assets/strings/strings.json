@@ -27,7 +27,9 @@
   "limite": "Límite alcanzado: solo puedes seleccionar hasta 20 imágenes.",
   "collage": "Collage",
   "template": "Plantillas",
-  "edit": "Editar Imagen"
+  "edit": "Editar Imagen",
+  "siguiente": "Siguiente",
+  "imagenes_no_selecionadas": "Por favor seleciona algunas imagenes"
 
 
 }

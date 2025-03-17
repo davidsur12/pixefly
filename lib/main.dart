@@ -4,6 +4,7 @@ import 'package:pixelfy/screens/editor.dart';
 import 'package:pixelfy/screens/home/screeen_home.dart';
 import 'package:pixelfy/screens/image_picker.dart';
 import 'package:pixelfy/utils/cadenas.dart';
+import 'package:pixelfy/utils/images_seleccionadas.dart';
 
 import 'package:provider/provider.dart';
 import 'package:pixelfy/utils/provider_ratio.dart';
@@ -20,7 +21,7 @@ void main() async {
         providers: [
           ChangeNotifierProvider(create: (_) => ConfigLayout()),
           ChangeNotifierProvider(create: (_) => SizeRatio()),
-
+          ChangeNotifierProvider(create: (_) => ImagesSeleccionadas()),
         ],
         child: const MyApp(),
       )
