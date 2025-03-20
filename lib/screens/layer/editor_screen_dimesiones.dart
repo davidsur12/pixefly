@@ -80,12 +80,16 @@ class _ImageEditorScreenState extends State<ImageEditorScreen> {
                     /*
                     aquie s deberia ir los layouts segun las imagenes y  el layout selecionado
                      */
+
+
+
                       CapaLayoutCollage(
                       //  key: ValueKey('$_lastWidth-$_lastHeight'), // Combinar ambos valores
                         key: ValueKey(_lastWidth), // Forzar reconstrucción cuando cambie el tamaño
                         width:  context.watch<SizeRatio>().width,
                         height:  context.watch<SizeRatio>().height,//_lastHeight,
                       ),
+
 
 //estrella
                     Positioned(
