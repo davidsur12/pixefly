@@ -130,82 +130,40 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
         floatingActionButton: Column(children: [
 
           FloatingActionButton(onPressed: () {
-  /*
             conecionInternet4(
                 AppWrite.InstanciaAppWrite.obtenerYGuardarImagenes,
                 //AppWrite.InstanciaAppWrite.gruposBasicos,
                     () =>
                     ToastPersonalisado.showToasSimple(
                         context, "Error al descargar las imagens "));
-            */
-             //checkImagenes();
 
-           // buildImagenesAgrupadasWidget();
+            //checkImagenes();
+
+            // buildImagenesAgrupadasWidget();
 
           }
 
 
           ),
           FloatingActionButton(onPressed: () async {
+            mostrarImagenesAgrupadas();
             //descarga las imagenes
-            List<Map<String, dynamic>> images = await DataBackgraund().getImages();
+            List<Map<String, dynamic>> images = await DataBackgraund()
+                .getImages();
             print("total imagenes decargadas ${images.length}");
+          },)
+        ],),
 
 
-          },)],),
+        body: buildBottomSheetGruposYImagenesFuture() //buildGruposDeImagenes() //buildImagenesAgrupadasWidget(context)
 
-
-
-
-    body: buildImagenesAgrupadasWidget(context)
-    /*SingleChildScrollView(
-    child:buildImagenesAgrupadasWidget()
-
-    Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-    FutureBuilder<List<Document>>(
-    future: getDocuments(),
-    builder: (context, snapshot) {
-    if (snapshot.connectionState == ConnectionState.waiting) {
-    return Center(child: CircularProgressIndicator());
-    } else if (snapshot.hasError) {
-    return Center(child: Text("Error: ${snapshot.error}"));
-    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-    return Center(child: Text("No hay documentos."));
-    } else {
-    final documents = snapshot.data!;
-    return ListView.builder(
-    shrinkWrap: true, // Solución: Permite que ListView adapte su tamaño al contenido
-    physics: NeverScrollableScrollPhysics(), // Desactiva el scroll de ListView para evitar conflictos
-    itemCount: documents.length,
-    itemBuilder: (context, index) {
-    return ListTile(
-    title: Text(documents[index].data['nombre'] ?? 'Sin título'),
-    subtitle: Text(documents[index].data['grupo'].toString() ?? 'Sin descripción'),
-
-    );
-    },
-    );
-    }
-    },
-    )
-    ],
-    ),
-
-
-
-
-
-    )
-    */
 
     );
   }
 
-  /*
+
   void mostrarImagenesAgrupadas() async {
-    final grupos = await DataBackgraund().obtenerImagenesPorGrupo();
+    final grupos = await DataBackgraund().obtenerImagenesPorGrupo2();
 
     grupos.forEach((grupoId, imagenes) {
       print('Grupo $grupoId:');
@@ -214,8 +172,6 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
       }
     });
   }
-  */
-
 
   Widget buildImagenesAgrupadasWidget(BuildContext context) {
     return FutureBuilder<Map<int, Map<String, List<String>>>>(
@@ -254,30 +210,206 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
       },
     );
   }
+
   void mostrarImagenDialog(BuildContext context, String rutaImagen) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Image.file(io.File(rutaImagen), fit: BoxFit.contain),
-            const SizedBox(height: 10),
-            Text(
-              rutaImagen,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+      builder: (context) =>
+          AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Image.file(io.File(rutaImagen), fit: BoxFit.contain),
+                const SizedBox(height: 10),
+                Text(
+                  rutaImagen,
+                  style: const TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
             ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            child: const Text('Cerrar'),
-            onPressed: () => Navigator.of(context).pop(),
+            actions: [
+              TextButton(
+                child: const Text('Cerrar'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
+
+  Widget buildGruposDeImagenes() {
+    return FutureBuilder<Map<int, List<Map<String, dynamic>>>>(
+      future: DataBackgraund().obtenerImagenesPorGrupo2(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No hay grupos disponibles.'));
+        }
+
+        final grupos = snapshot.data!;
+
+        return ListView.builder(
+          itemCount: grupos.length,
+          itemBuilder: (context, index) {
+            final grupoId = grupos.keys.elementAt(index);
+            final imagenes = grupos[grupoId]!;
+
+            return Card(
+              margin: const EdgeInsets.all(8),
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Grupo $grupoId',
+                        style: const TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: imagenes
+                          .map((imagen) =>
+                          Chip(
+                            label: Text(imagen['fieldId'].toString()),
+                          ))
+                          .toList(),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+
+
+
+
+  Widget buildBottomSheetGruposYImagenesFuture() {
+    return FutureBuilder<Map<int, List<Map<String, dynamic>>>>(
+      future: DataBackgraund().obtenerImagenesPorGrupo2(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No hay imágenes agrupadas.'));
+        }
+
+        final gruposConImagenes = snapshot.data!;
+        final grupoKeys = gruposConImagenes.keys.toList();
+        final pageController = PageController();
+        final currentGrupo = ValueNotifier<int>(grupoKeys.first);
+
+        return ValueListenableBuilder<int>(
+          valueListenable: currentGrupo,
+          builder: (context, grupoActualId, _) {
+            return Container(
+              height: 350,
+              padding: const EdgeInsets.all(12),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Fila de grupos
+                  SizedBox(
+                    height: 40,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: grupoKeys.length,
+                      itemBuilder: (context, index) {
+                        final grupoId = grupoKeys[index];
+                        final isSelected = grupoId == grupoActualId;
+
+                        return GestureDetector(
+                          onTap: () {
+                            currentGrupo.value = grupoId;
+                            pageController.jumpToPage(index);
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color:
+                              isSelected ? Colors.blue : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Center(
+                              child: Text(
+                                'Grupo $grupoId',
+                                style: TextStyle(
+                                  color:
+                                  isSelected ? Colors.white : Colors.black87,
+                                  fontWeight: isSelected
+                                      ? FontWeight.bold
+                                      : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Fila de imágenes por grupo
+                  Expanded(
+                    child: PageView.builder(
+                      controller: pageController,
+                      itemCount: grupoKeys.length,
+                      onPageChanged: (index) {
+                        currentGrupo.value = grupoKeys[index];
+                      },
+                      itemBuilder: (context, index) {
+                        final grupoId = grupoKeys[index];
+                        final imagenes = gruposConImagenes[grupoId]!;
+
+                        return ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: imagenes.map((imagen) {
+                            final ruta = imagen['fieldId'];
+
+                            return Container(
+                              width: 120,
+                              margin: const EdgeInsets.only(right: 12),
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.grey),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  io.File(ruta),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
 
 
 

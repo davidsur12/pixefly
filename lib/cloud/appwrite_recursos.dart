@@ -214,7 +214,9 @@ class AppWrite {
     }
   }
 
-  /// **Obtener y guardar imágenes de Appwrite**
+  /***
+   * con la consulta de las imagenes guarda el fielid de las imagenes en sqlite
+   */
   Future<void> obtenerYGuardarImagenes() async {
     Map<int, List<String>> fileIdsPorGrupo = await obtenerFileIdsPorGrupo();
 
@@ -227,39 +229,7 @@ class AppWrite {
     print("Imagenes descargadas");
   }
 
-  Future<void> descargarYGuardarImagen2(int grupo, String fileId) async {
-    try {
 
-      Client client = Client();
-      client
-          .setEndpoint(
-          'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
-          .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
-
-      Storage storage = Storage(client);
-
-
-
-      // 1️**Descargar los bytes de la imagen**
-
-      typed.Uint8List bytes = await storage.getFileDownload(
-        bucketId: '67ded71200357a584f41',
-        fileId: fileId,
-      );
-
-      // **Guardar la imagen localmente**
-      print("📥 Bytes descargados: ${bytes.length}");
-      print("Desacragando la imagen $fileId");
-       File imageFile = (await DataBackgraund().insertImage(grupo, fileId)) as File;
-
-      //  **Guardar en SQLite**
-         await DataBackgraund().insertImage(grupo, imageFile.path);
-
-      print("✅ Imagen guardada en SQLite: Grupo $grupo - FileID $fileId");
-    } catch (e) {
-      print("❌ Error descargando imagen ($fileId): $e");
-    }
-  }
 
   Future<void> descargarYGuardarImagen(int grupo, String fileId) async {
     try {
@@ -303,7 +273,39 @@ class AppWrite {
       print("❌ Error descargando imagen ($fileId): $e");
     }
   }
+  Future<void> descargarYGuardarImagen2(int grupo, String fileId) async {
+    try {
 
+      Client client = Client();
+      client
+          .setEndpoint(
+          'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
+          .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
+
+      Storage storage = Storage(client);
+
+
+
+      // 1️**Descargar los bytes de la imagen**
+
+      typed.Uint8List bytes = await storage.getFileDownload(
+        bucketId: '67ded71200357a584f41',
+        fileId: fileId,
+      );
+
+      // **Guardar la imagen localmente**
+      print("📥 Bytes descargados: ${bytes.length}");
+      print("Desacragando la imagen $fileId");
+      File imageFile = (await DataBackgraund().insertImage(grupo, fileId)) as File;
+
+      //  **Guardar en SQLite**
+      await DataBackgraund().insertImage(grupo, imageFile.path);
+
+      print("✅ Imagen guardada en SQLite: Grupo $grupo - FileID $fileId");
+    } catch (e) {
+      print("❌ Error descargando imagen ($fileId): $e");
+    }
+  }
 
 
 

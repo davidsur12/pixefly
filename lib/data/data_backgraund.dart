@@ -132,7 +132,4 @@ class DataBackgraund {
     return estructura;
   }
 
-
-
-
 }
