@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pixelfy/screens/anuncios/banner.dart';
 import 'package:pixelfy/screens/image_picker.dart';
+import 'package:pixelfy/screens/prueba/datos-app_write.dart';
 import 'package:pixelfy/utils/cadenas.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pixelfy/screens/prueba/appwrite.dart';
 
 class ScreenHome extends StatefulWidget {
   const ScreenHome({super.key});
@@ -75,9 +77,19 @@ class _ScreenHomeState extends State<ScreenHome> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildGradientContainer(Cadenas.get("template"), Icons.ice_skating),
+                  _buildGradientContainer(Cadenas.get("template"), Icons.ice_skating, (){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => PruebaAppWrite() ),
+                    );
+                  }),
                   const SizedBox(width: 10),
-                  _buildGradientContainer(Cadenas.get("edit"), Icons.ac_unit),
+                  _buildGradientContainer(Cadenas.get("edit"), Icons.ac_unit,(){
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => DatosAppWrite()),
+                    );
+                  }),
                 ],
               ),
             ],
@@ -97,8 +109,12 @@ class _ScreenHomeState extends State<ScreenHome> {
     );
   }
 
-  Widget _buildGradientContainer(String text, IconData icon) {
-    return Container(
+  Widget _buildGradientContainer(String text, IconData icon, Function() funcion) {
+    return
+
+     GestureDetector(
+         onTap: funcion,
+         child:Container(
       width: MediaQuery.of(context).size.width / 2.3,
       height: MediaQuery.of(context).size.height / 5,
       alignment: Alignment.center,
@@ -124,7 +140,8 @@ class _ScreenHomeState extends State<ScreenHome> {
           ),
         ],
       ),
-    );
+    ))
+    ;
   }
   Widget _buildGradientContainerwidth(String text, IconData icon) {
     return

@@ -29,7 +29,13 @@
   "template": "Plantillas",
   "edit": "Editar Imagen",
   "siguiente": "Siguiente",
-  "imagenes_no_selecionadas": "Por favor seleciona algunas imagenes"
+  "imagenes_no_selecionadas": "Por favor seleciona algunas imagenes",
+  "dibujar": "Dibujar",
+  "backgraund": "Backgraund",
+  "emoji": "Emojis",
+  "imagenes": "Imagenes",
+  "luminusidad": "Ajust",
+  "filtro": "Filtro"
 
 
 }

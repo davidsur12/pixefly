@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pixelfy/cloud/appwrite_recursos.dart';
 import 'package:pixelfy/screens/editor.dart';
 import 'package:pixelfy/screens/home/screeen_home.dart';
 import 'package:pixelfy/screens/image_picker.dart';
@@ -12,7 +13,12 @@ import 'package:pixelfy/utils/size_ratio.dart';
 
 
 
+
+
 void main() async {
+
+   AppWrite.InstanciaAppWrite;//instacio AppWrite
+
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
   await Cadenas.loadStrings();

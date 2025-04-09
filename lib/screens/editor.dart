@@ -6,6 +6,7 @@ import 'package:pixelfy/screens/layer/editor_screen_dimesiones.dart';
 import 'dart:io';
 import 'package:pixelfy/screens/layer/layer.dart';
 import 'package:pixelfy/screens/widgets/widget_ratio.dart';
+import 'package:pixelfy/utils/cadenas.dart';
 import 'package:pixelfy/utils/provider_ratio.dart';
 import 'package:uuid/uuid.dart'; // 📌 Para generar IDs únicos
 import 'package:provider/provider.dart';
@@ -69,6 +70,35 @@ class _EditorScreenState extends State<EditorScreen> {
     return Container(
       color: Colors.black87,
       padding: EdgeInsets.symmetric(vertical: 10),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal, // Habilita desplazamiento horizontal
+        child: Row(
+          children: [
+            SizedBox(width: 80, child: WidgetRatio()),
+            SizedBox(width: 80, child: _menuButton(Icons.text_fields, "Texto", () {
+              print("tamaño: ${context.read<ConfigLayout>().ratio}");
+              print('📌 Emojis de editor: ${context.read<ConfigLayout>().layers.map((e) => '(${e.dx}, ${e.dy})').toList()}');
+            })),
+            SizedBox(width: 80, child: _menuButton(Icons.brush, Cadenas.get("dibujar"), () {})),
+            SizedBox(width: 80, child: _menuButton(Icons.indeterminate_check_box_outlined, Cadenas.get("backgraund"), () {})),
+            SizedBox(width: 80, child: _menuButton(Icons.ac_unit_outlined, Cadenas.get("luminusidad"), () {})),
+            SizedBox(width: 80, child: _menuButton(Icons.filter_rounded, Cadenas.get("filtro"), () {})),
+            SizedBox(width: 80, child: _menuButton(Icons.emoji_emotions, Cadenas.get("emoji"), () {
+              _showEmojiPicker();
+            })),
+            SizedBox(width: 80, child: _menuButton(Icons.image, Cadenas.get("imagenes"), () {})),
+          ],
+        ),
+      ),
+    );
+  }
+
+
+  /*
+  Widget _buildBottomMenu() {
+    return Container(
+      color: Colors.black87,
+      padding: EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
@@ -85,15 +115,19 @@ class _EditorScreenState extends State<EditorScreen> {
             print('📌 Emojis de editor: ${ context.read<ConfigLayout>().layers.map((e) => '(${e.dx}, ${e.dy})').toList()}');
 
           }),
-          _menuButton(Icons.brush, "Dibujar", () {}),
-          _menuButton(Icons.emoji_emotions, "Emojis", () {
+          _menuButton(Icons.brush, Cadenas.get("dibujar"), () {}),
+          _menuButton(Icons.brush, Cadenas.get("backgraund"), () {}),
+          _menuButton(Icons.brush, Cadenas.get("luminusidad"), () {}),
+          _menuButton(Icons.brush, Cadenas.get("filtro"), () {}),
+          _menuButton(Icons.emoji_emotions, Cadenas.get("emoji"), () {
             _showEmojiPicker(); // Abrimos la ventana de emojis
           }),
-          _menuButton(Icons.image, "Imágenes", () {}),
+          _menuButton(Icons.image, Cadenas.get("imagenes"), () {}),
         ],
       ),
     );
   }
+  */
 
   Widget _menuButton(IconData icon, String label, VoidCallback onTap) {
     return Column(
