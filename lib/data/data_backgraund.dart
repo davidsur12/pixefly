@@ -17,10 +17,9 @@ class DataBackgraund {
     _database = await _initDatabase();
     return _database!;
   }
-
   Future<Database> _initDatabase() async {
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String path = join(documentsDirectory.path, "images.db");
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'images_backgraund.db');
 
     return await openDatabase(
       path,
@@ -29,24 +28,47 @@ class DataBackgraund {
     );
   }
 
+  /*
+  Future<Database> _initDatabase() async {
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String path = join(documentsDirectory.path, "images_backgraund.db");
+
+    return await openDatabase(
+      path,
+      version: 1,
+      onCreate: _onCreate,
+    );
+  }
+  */
+
   // Crear la tabla en la base de datos
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
-      CREATE TABLE images (
+      CREATE TABLE images_backgraund (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         group_id INTEGER NOT NULL,
-        fieldId TEXT NOT NULL
+         nombre_grupo TEXT NOT NULL,
+        fieldId TEXT NOT NULL,
+        path TEXT NOT NULL
       )
     ''');
   }
 
   // Insertar una imagen
-  Future<int> insertImage(int groupId, String fieldId) async {
+  /***
+   * se encargar de guardar el fieldide de la iamgen,
+   * el grupo al que pertenece,
+   * el el nombre del grupo,
+   * y el path donde se encuentra
+   *
+   */
+  Future<int> insertarImage(
+      int groupId, String nombreGrupo, String fieldId, String path) async {
     final db = await database;
     try {
       int result = await db.insert(
-        'images',
-        {'group_id': groupId, 'fieldId': fieldId},
+        'images_backgraund',
+        {'group_id': groupId, 'nombre_grupo': nombreGrupo, 'fieldId': fieldId, 'path': path },
       );
       print("✅ Imagen insertada con ID: $result");
       return result;
@@ -59,60 +81,81 @@ class DataBackgraund {
   // Obtener todas las imágenes
   Future<List<Map<String, dynamic>>> getImages() async {
     final db = await database;
-    return await db.query('images');
+    return await db.query('images_backgraund ');
   }
 
   // Obtener imágenes por grupo
   Future<List<Map<String, dynamic>>> getImagesByGroup(int groupId) async {
     final db = await database;
-    return await db.query('images', where: 'group_id = ?', whereArgs: [groupId]);
+    return await db.query('images_backgraund',
+        where: 'group_id = ?', whereArgs: [groupId]);
   }
 
   // Eliminar una imagen por ID
   Future<int> deleteImage(int id) async {
     final db = await database;
-    return await db.delete('images', where: 'id = ?', whereArgs: [id]);
+    return await db
+        .delete('images_backgraund', where: 'id = ?', whereArgs: [id]);
   }
 
   // Eliminar todas las imágenes de un grupo
   Future<int> deleteImagesByGroup(int groupId) async {
     final db = await database;
-    return await db.delete('images', where: 'group_id = ?', whereArgs: [groupId]);
+    return await db.delete('images_backgraund',
+        where: 'group_id = ?', whereArgs: [groupId]);
   }
-  // Verificar si una imagen ya existe por su fieldId
+
+  /***
+   *  Verificar si una imagen ya existe por su fieldId en sqlite
+   */
   Future<bool> imageExistsByFieldId(String fieldId) async {
     final db = await database;
     final result = await db.query(
-      'images',
+      'images_backgraund',
       where: 'fieldId = ?',
       whereArgs: [fieldId],
     );
     return result.isNotEmpty;
   }
 
-  Future<Map<int, List<Map<String, dynamic>>>> obtenerImagenesPorGrupo2() async {
-    final db = await _initDatabase();
+  /***
+   * metodo que se encarga de descargar la imagen
+   */
+  Future<Map<int, List<Map<String, dynamic>>>>
+      obtenerImagenesPorGrupo2() async {
+    final db = await database; //objeto sqlite
 
-    final List<Map<String, dynamic>> resultados = await db.query('images');
+    final List<Map<String, dynamic>> resultados = await db
+        .query('images_backgraund'); //consulto si hay imagenes en el sqlite
 
     Map<int, List<Map<String, dynamic>>> imagenesAgrupadas = {};
-
+    print("***********************************************");
+    print("total de imagenes ${resultados.length}");
     for (var fila in resultados) {
       int grupoId = fila['group_id'];
 
       if (!imagenesAgrupadas.containsKey(grupoId)) {
+        /*
+        Si aún no hay una entrada en el mapa para ese group_id, se crea una lista vacía.
+        Luego se agrega esa imagen a la lista correspondiente.
+         */
+
         imagenesAgrupadas[grupoId] = [];
       }
 
       imagenesAgrupadas[grupoId]!.add(fila);
+      print("id de la imagen: ${imagenesAgrupadas[grupoId]}");
     }
 
     return imagenesAgrupadas;
   }
-  Future<Map<int, Map<String, List<String>>>> obtenerImagenesPorGrupoYSubgrupo() async {
-    final db = await _initDatabase();
 
-    final List<Map<String, dynamic>> resultados = await db.query('images');
+  Future<Map<int, Map<String, List<String>>>>
+      obtenerImagenesPorGrupoYSubgrupo() async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> resultados =
+        await db.query('images_backgraund');
 
     Map<int, Map<String, List<String>>> estructura = {};
 
@@ -131,5 +174,4 @@ class DataBackgraund {
 
     return estructura;
   }
-
 }

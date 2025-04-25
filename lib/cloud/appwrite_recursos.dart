@@ -169,78 +169,112 @@ class AppWrite {
   }
 
   /***
-   * me devuel el grupo y una lista de imagenes por cada grupo
+   * me devuel el grupo y una lista de imagenes de background por cada grupo ademas del
+   * nombre del grupo
    */
-  Future<Map<int, List<String>>> obtenerFileIdsPorGrupo() async {
+
+  Future<Map<int, List<List<String>>>> obtenerFileIdsPorGrupoBackground() async {
     Client client = Client()
         .setEndpoint("https://cloud.appwrite.io/v1")
         .setProject("67ddc33c0007f982de7a");
 
     final databases = Databases(client);
-    Map<int, List<String>> fileIdsPorGrupo = {};
+    Map<int, List<List<String>>> resultadoPorGrupo = {};
 
     try {
-      // Obtener los grupos únicos
-      Set<int> uniqueGroups = {1, 2, 3, 4, 5}; //await gruposBasicos();
+      Set<int> uniqueGroups = {
+        1,
+        2,
+        3,
+        4,
+        5
+      }; // Aquí podrías usar await gruposBasicos();
+
       if (uniqueGroups.isNotEmpty) {
         for (int grupo in uniqueGroups) {
           final response = await databases.listDocuments(
             databaseId: '67debbb0000b14f2f7ec',
             collectionId: '67debc5a002b9f76055d',
             queries: [
-              Query.equal('grupo', grupo), // Filtra por grupo
-              Query.limit(1000), // Ajusta el límite según sea necesario
+              Query.equal('grupo', grupo),
+              Query.limit(1000),
             ],
           );
 
-          // Extraer los fileId de los documentos que pertenecen a este grupo
-          List<String> fileIds = response.documents
-              .map((doc) => doc.data['fileId'] as String) // ✅ Obtener el valor del campo "fileId"
-              .toList();
+          List<List<String>> datosGrupo = response.documents.map((doc) {
+            final data = doc.data;
+            final nombreGrupo = data['nombre_grupo']?.toString() ?? 'SinNombre';
+            final fileId = data['fileId']?.toString() ?? 'SinFileId';
+            return [nombreGrupo, fileId];
+          }).toList();
 
-
-          fileIdsPorGrupo[grupo] = fileIds;
+          resultadoPorGrupo[grupo] = datosGrupo;
         }
 
-        print("File IDs por grupo: $fileIdsPorGrupo");
-        return fileIdsPorGrupo;
+        print("NombreGrupo + FileId por grupo: $resultadoPorGrupo");
+        return resultadoPorGrupo;
       } else {
-        print("*** uniqueGroups vacios *** ");
+        print("*** uniqueGroups vacíos ***");
+        return {};
       }
-      return fileIdsPorGrupo;
     } on AppwriteException catch (e) {
       print("Error: $e");
       return {};
     }
   }
 
+
   /***
    * con la consulta de las imagenes guarda el fielid de las imagenes en sqlite
+   * y el grupo al que pertenece
    */
-  Future<void> obtenerYGuardarImagenes() async {
-    Map<int, List<String>> fileIdsPorGrupo = await obtenerFileIdsPorGrupo();
+  Future<void> obtenerYGuardarImagenesBackgraund() async {
+    //Obtengo los field ids de las imagens agrupadas
+    Map<int, List<List<String>>> datosPorGrupo = await obtenerFileIdsPorGrupoBackground();
 
-    for (int grupo in fileIdsPorGrupo.keys) {
-      for (String fileId in fileIdsPorGrupo[grupo]!) {
-        print("laimagen que s deberia obtener es $grupo + $fileId");
-        await descargarYGuardarImagen(grupo, fileId);
+    //recorro la lista de imagenes por grupo
+    for (int grupo in datosPorGrupo.keys) {
+      for (List<String> datos in datosPorGrupo[grupo]!) {
+        String nombreGrupo = datos[0];
+        String fileId = datos[1];
+
+        print(
+            "Grupo: $grupo, Nombre del Grupo: $nombreGrupo, File ID: $fileId");
+//cuando obtengo los id de las imagenes orgranisadas por grupo procedo a descargarlas
+
+        await descargarYGuardarImagen(
+          grupo,
+          nombreGrupo,
+          fileId,
+        );
       }
     }
-    print("Imagenes descargadas");
+
+    print("Imágenes descargadas");
   }
 
 
-
-  Future<void> descargarYGuardarImagen(int grupo, String fileId) async {
+  /***
+   * descarga las imagenes de appwrite y las guarda en sqlite
+   * con los siguietes propieades
+   * grupo
+   * nombre_grupo
+   * fieldid
+   * path
+   *
+   */
+  Future<void> descargarYGuardarImagen(
+      int grupo, String nombreGrupo, String fileId) async {
     try {
       Client client = Client();
       client
           .setEndpoint(
-          'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
+              'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
           .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
 
       Storage storage = Storage(client);
 
+     // verifico si el fieldid ya esta guardao para no volver a descargarlo
       bool existe = await DataBackgraund().imageExistsByFieldId(fileId);
       if (existe) {
         print("La imagen ya está guardada.");
@@ -258,7 +292,8 @@ class AppWrite {
         final imageFile = await File(filePath).writeAsBytes(bytes);
 
         // 3️⃣ Guardar el grupo y el path (fileId) en SQLite
-        int result = await DataBackgraund().insertImage(grupo, imageFile.path);
+        int result = await DataBackgraund()
+            .insertarImage(grupo, nombreGrupo, fileId , imageFile.path);
 
         if (result != -1) {
           print("✅ Imagen guardada en SQLite: Grupo $grupo - FileID $fileId");
@@ -266,25 +301,21 @@ class AppWrite {
           print("❌ Error al guardar en SQLite");
         }
       }
-
-
-
     } catch (e) {
       print("❌ Error descargando imagen ($fileId): $e");
     }
   }
-  Future<void> descargarYGuardarImagen2(int grupo, String fileId) async {
+/*
+  Future<void> descargarYGuardarImagen2(
+      int grupo, String nombreGrupo, String fileId) async {
     try {
-
       Client client = Client();
       client
           .setEndpoint(
-          'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
+              'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
           .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
 
       Storage storage = Storage(client);
-
-
 
       // 1️**Descargar los bytes de la imagen**
 
@@ -296,10 +327,11 @@ class AppWrite {
       // **Guardar la imagen localmente**
       print("📥 Bytes descargados: ${bytes.length}");
       print("Desacragando la imagen $fileId");
-      File imageFile = (await DataBackgraund().insertImage(grupo, fileId)) as File;
+      File imageFile = (await DataBackgraund()
+          .insertarImage(grupo, nombreGrupo, fileId, "")) as File;
 
       //  **Guardar en SQLite**
-      await DataBackgraund().insertImage(grupo, imageFile.path);
+      await DataBackgraund().insertarImage(grupo, nombreGrupo,fileId , imageFile.path);
 
       print("✅ Imagen guardada en SQLite: Grupo $grupo - FileID $fileId");
     } catch (e) {
@@ -307,7 +339,7 @@ class AppWrite {
     }
   }
 
-
+  */
 
 /*
 

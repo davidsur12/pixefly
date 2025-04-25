@@ -130,8 +130,10 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
         floatingActionButton: Column(children: [
 
           FloatingActionButton(onPressed: () {
+
+            //decsragr las imagenes
             conecionInternet4(
-                AppWrite.InstanciaAppWrite.obtenerYGuardarImagenes,
+                AppWrite.InstanciaAppWrite.obtenerYGuardarImagenesBackgraund,
                 //AppWrite.InstanciaAppWrite.gruposBasicos,
                     () =>
                     ToastPersonalisado.showToasSimple(
@@ -298,9 +300,9 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+          return Center(child: Text("No se encontraron los recursos"));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No hay imágenes agrupadas.'));
+          return const Center(child: Text('No hay imágenes descargadas.'));
         }
 
         final gruposConImagenes = snapshot.data!;
@@ -379,7 +381,7 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
                         return ListView(
                           scrollDirection: Axis.horizontal,
                           children: imagenes.map((imagen) {
-                            final ruta = imagen['fieldId'];
+                            final ruta = imagen['path'];
 
                             return Container(
                               width: 120,
