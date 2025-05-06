@@ -1,12 +1,26 @@
 import 'dart:io';
+import 'package:flutter/cupertino.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pixelfy/blocs/image_cubit_backgraund.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+
 
 class DataBackgraund {
-  static final DataBackgraund _instance = DataBackgraund._internal();
 
-  factory DataBackgraund() => _instance;
+
+  static final DataBackgraund _instance = DataBackgraund._internal();
+  factory DataBackgraund({BuildContext? context}) {
+    if (context != null) {
+      _instance._context = context;
+    }
+    return _instance;
+  }
+  BuildContext? _context;
+
+  //factory DataBackgraund() => _instance;
 
   static Database? _database;
 
@@ -17,29 +31,19 @@ class DataBackgraund {
     _database = await _initDatabase();
     return _database!;
   }
-  Future<Database> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'images_backgraund.db');
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _onCreate,
-    );
-  }
 
-  /*
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, "images_backgraund.db");
-
+print("Ruta base de datos: $path");
     return await openDatabase(
       path,
       version: 1,
       onCreate: _onCreate,
     );
   }
-  */
+
 
   // Crear la tabla en la base de datos
   Future<void> _onCreate(Database db, int version) async {
@@ -54,7 +58,7 @@ class DataBackgraund {
     ''');
   }
 
-  // Insertar una imagen
+
   /***
    * se encargar de guardar el fieldide de la iamgen,
    * el grupo al que pertenece,
@@ -71,6 +75,8 @@ class DataBackgraund {
         {'group_id': groupId, 'nombre_grupo': nombreGrupo, 'fieldId': fieldId, 'path': path },
       );
       print("✅ Imagen insertada con ID: $result");
+      _context?.read<ImagesCubitBackgraund>().notificarCambio();
+
       return result;
     } catch (e) {
       print("❌ Error al insertar la imagen: $e");
@@ -119,7 +125,8 @@ class DataBackgraund {
   }
 
   /***
-   * metodo que se encarga de descargar la imagen
+   * metodo que se encarga de  cargar las imagenes de sqlite y retornarlas en
+   * un future en modo de mapa
    */
   Future<Map<int, List<Map<String, dynamic>>>>
       obtenerImagenesPorGrupo2() async {
@@ -143,7 +150,7 @@ class DataBackgraund {
         imagenesAgrupadas[grupoId] = [];
       }
 
-      imagenesAgrupadas[grupoId]!.add(fila);
+      imagenesAgrupadas[grupoId]!.add(fila);//se agrega item  a la lista
       print("id de la imagen: ${imagenesAgrupadas[grupoId]}");
     }
 
@@ -174,4 +181,31 @@ class DataBackgraund {
 
     return estructura;
   }
+
+  Future<List<FileSystemEntity>> listarBasesDeDatos() async {
+    final Directory appDir = await getApplicationDocumentsDirectory();
+    final List<FileSystemEntity> archivos = appDir.listSync();
+
+    // Filtrar por archivos que terminen en ".db"
+    final List<FileSystemEntity> basesDeDatos =
+    archivos.where((archivo) => archivo.path.endsWith('.db')).toList();
+    print("total de bases de datos ${basesDeDatos.length}");
+for(var iten in basesDeDatos){
+  print("ruta: ${iten}");
+}
+    return basesDeDatos;
+  }
+
+  Future<bool> eliminarImagenPorPath(String path) async {
+    final db = await   database; // Reemplaza esto con tu método real para obtener la base de datos
+
+    final count = await db.delete(
+      'images_backgraund',
+      where: 'path = ?',
+      whereArgs: [path],
+    );
+
+    return count > 0;
+  }
+
 }

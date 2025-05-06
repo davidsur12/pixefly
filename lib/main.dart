@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:pixelfy/blocs/image_cubit_backgraund.dart';
 import 'package:pixelfy/cloud/appwrite_recursos.dart';
 import 'package:pixelfy/screens/editor.dart';
 import 'package:pixelfy/screens/home/screeen_home.dart';
@@ -16,8 +18,11 @@ import 'package:pixelfy/utils/size_ratio.dart';
 
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Necesario para usar funciones async antes de runApp
 
    AppWrite.InstanciaAppWrite;//instacio AppWrite
+
+  await iniciarAplicacion(); // Tu función async
 
   WidgetsFlutterBinding.ensureInitialized();
   MobileAds.instance.initialize();
@@ -32,6 +37,15 @@ void main() async {
         child: const MyApp(),
       )
     );
+}
+Future<void> iniciarAplicacion() async {
+  /*
+  esta funcion va adescargar el archivos
+   */
+  // Aquí va tu lógica, por ejemplo:
+  print("Inicializando la app...");
+  await Future.delayed(Duration(seconds: 2)); // Simula algo como cargar datos
+  print("Aplicación inicializada.");
 }
 
 
@@ -49,39 +63,8 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home:ScreenHome(),//ImagePickerImage() //Editor()//const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: BlocProvider(create: (_)=> ImagesCubitBackgraund() ,child: ScreenHome(),) //ScreenHome(),//ImagePickerImage() //Editor()//const MyHomePage(title: 'Flutter Demo Home Page'),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'lanzada',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

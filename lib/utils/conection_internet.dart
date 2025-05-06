@@ -64,7 +64,9 @@ void conecionInternet3(Future<void> Function() funcion, Function onError) async 
 }
 
 void conecionInternet4(Future<void> Function() funcion, Function onError) async {
+  print("Comprobando conexion a internet");
   bool isConnected = await InternetConnection().hasInternetAccess;
+
 
   // 🔍 Verificación adicional con una petición real a Google
   if (isConnected) {

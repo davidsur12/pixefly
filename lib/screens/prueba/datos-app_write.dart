@@ -1,14 +1,17 @@
 import 'package:appwrite/appwrite.dart';
 import 'package:flutter/material.dart';
 import 'package:appwrite/models.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pixelfy/blocs/image_cubit_backgraund.dart';
 import 'package:pixelfy/cloud/appwrite_recursos.dart';
-import 'package:pixelfy/data/data_backgraund.dart';
+import 'package:pixelfy/data/backgraund/data_backgraund.dart';
+import 'package:pixelfy/data/backgraund/info_backgraund_img.dart';
+import 'package:pixelfy/screens/widgets/imagen_verificada.dart';
 import 'package:pixelfy/utils/conection_internet.dart';
 import 'package:pixelfy/utils/toast_personalisados.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:pixelfy/utils/guardar_imagen.dart';
 import 'dart:io' as io;
-
 
 class DatosAppWrite extends StatefulWidget {
   const DatosAppWrite({super.key});
@@ -18,12 +21,10 @@ class DatosAppWrite extends StatefulWidget {
 }
 
 class _DatosAppWriteState extends State<DatosAppWrite> {
-
-
   Future<List<Document>> getDocuments() async {
     Client client = Client()
         .setEndpoint(
-        "https://cloud.appwrite.io/v1") // Reemplazar con el endpoint correcto
+            "https://cloud.appwrite.io/v1") // Reemplazar con el endpoint correcto
         .setProject("67ddc33c0007f982de7a"); // Coloca tu ID de proyecto
 
     final databases = Databases(client);
@@ -47,7 +48,7 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
     // Configura el cliente de Appwrite
     Client client = Client()
         .setEndpoint(
-        "https://cloud.appwrite.io/v1") // Reemplazar con el endpoint correcto
+            "https://cloud.appwrite.io/v1") // Reemplazar con el endpoint correcto
         .setProject("67ddc33c0007f982de7a"); // Coloca tu ID de proyecto
 
     final databases = Databases(client);
@@ -105,64 +106,93 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
 
   void conecionInternet(Future<void> Function() funcion, Function() error) {
     final listener =
-    InternetConnection().onStatusChange.listen((InternetStatus status) {
+        InternetConnection().onStatusChange.listen((InternetStatus status) {
       switch (status) {
         case InternetStatus.connected:
-        // The internet is now connected
+          // The internet is now connected
           funcion();
           break;
         case InternetStatus.disconnected:
-        // The internet is now disconnected
+          // The internet is now disconnected
           print("No hay internet");
           // ToastPersonalisado.showToasSimple(context, "Error al descargar ");
           //error();
-
 
           break;
       }
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: Column(children: [
+        floatingActionButton: Column(
+          children: [
+            FloatingActionButton(onPressed: () {
+              //decsragr las imagenes
+              conecionInternet4(
+                  AppWrite.InstanciaAppWrite.obtenerYGuardarImagenesBackgraund,
+                  //AppWrite.InstanciaAppWrite.gruposBasicos,
+                  () => ToastPersonalisado.showToasSimple(
+                      context, "Error al descargar las imagens "));
 
-          FloatingActionButton(onPressed: () {
+              //checkImagenes();
 
-            //decsragr las imagenes
-            conecionInternet4(
-                AppWrite.InstanciaAppWrite.obtenerYGuardarImagenesBackgraund,
-                //AppWrite.InstanciaAppWrite.gruposBasicos,
-                    () =>
-                    ToastPersonalisado.showToasSimple(
-                        context, "Error al descargar las imagens "));
+              // buildImagenesAgrupadasWidget();
+            }),
+            FloatingActionButton(
+              onPressed: () async {
+                print("consultando db..........");
+                await DataBackgraund().listarBasesDeDatos();
+                print("consulta terminada.....");
 
-            //checkImagenes();
+                mostrarImagenesAgrupadas();
+                //descarga las imagenes
+                List<Map<String, dynamic>> images =
+                    await DataBackgraund().getImages();
+                print("total imagenes decargadas ${images.length}");
+              },
+            )
+            ,
+            FloatingActionButton(onPressed: ()async{
+              bool resultado = await AppWrite.InstanciaAppWrite.obtenerFondosPorGrupo();
+              if (resultado) {
+                print('Fondos obtenidos correctamente');
+              } else {
+                print('Ocurrió un error al obtener los fondos');
+              }
+            }
+            ),
+            FloatingActionButton(onPressed: ()async{
 
-            // buildImagenesAgrupadasWidget();
+              //await DatabaseInfoBackgraund.instance.deleteDatabaseFile();
 
-          }
+              final registros = await DatabaseInfoBackgraund.instance.getAllData();
 
+              for (var registro in registros) {
+                print('Grupo: ${registro['grupo']}, '
+                    'Cantidad: ${registro['cantidad_img']}, '
+                    'Fecha: ${registro['fecha_actualizacion']}');
+              }
+              
 
+            }
+            )
+          ],
+        ),
+        body: BlocProvider(
+          create: (_) => ImagesCubitBackgraund(),
+          child: BlocBuilder<ImagesCubitBackgraund, int>(
+            builder: (context, state) {
+              return buildBottomSheetGruposYImagenesFuture2();
+            },
           ),
-          FloatingActionButton(onPressed: () async {
-            mostrarImagenesAgrupadas();
-            //descarga las imagenes
-            List<Map<String, dynamic>> images = await DataBackgraund()
-                .getImages();
-            print("total imagenes decargadas ${images.length}");
-          },)
-        ],),
+        )
 
 
-        body: buildBottomSheetGruposYImagenesFuture() //buildGruposDeImagenes() //buildImagenesAgrupadasWidget(context)
 
-
-    );
+        );
   }
-
 
   void mostrarImagenesAgrupadas() async {
     final grupos = await DataBackgraund().obtenerImagenesPorGrupo2();
@@ -216,26 +246,25 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
   void mostrarImagenDialog(BuildContext context, String rutaImagen) {
     showDialog(
       context: context,
-      builder: (context) =>
-          AlertDialog(
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Image.file(io.File(rutaImagen), fit: BoxFit.contain),
-                const SizedBox(height: 10),
-                Text(
-                  rutaImagen,
-                  style: const TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.file(io.File(rutaImagen), fit: BoxFit.contain),
+            const SizedBox(height: 10),
+            Text(
+              rutaImagen,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
-            actions: [
-              TextButton(
-                child: const Text('Cerrar'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-            ],
+          ],
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Cerrar'),
+            onPressed: () => Navigator.of(context).pop(),
           ),
+        ],
+      ),
     );
   }
 
@@ -273,10 +302,9 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
                     Wrap(
                       spacing: 8,
                       children: imagenes
-                          .map((imagen) =>
-                          Chip(
-                            label: Text(imagen['fieldId'].toString()),
-                          ))
+                          .map((imagen) => Chip(
+                                label: Text(imagen['fieldId'].toString()),
+                              ))
                           .toList(),
                     ),
                   ],
@@ -290,10 +318,7 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
   }
 
 
-
-
-
-  Widget buildBottomSheetGruposYImagenesFuture() {
+  Widget buildBottomSheetGruposYImagenesFuture2() {
     return FutureBuilder<Map<int, List<Map<String, dynamic>>>>(
       future: DataBackgraund().obtenerImagenesPorGrupo2(),
       builder: (context, snapshot) {
@@ -302,8 +327,35 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
         } else if (snapshot.hasError) {
           return Center(child: Text("No se encontraron los recursos"));
         } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          //si no hay imagenes descrgardas se procede a descargarlas
+          conecionInternet4(
+              AppWrite.InstanciaAppWrite.obtenerYGuardarImagenesBackgraund,
+              //AppWrite.InstanciaAppWrite.gruposBasicos,
+                  () => ToastPersonalisado.showToasSimple(
+                  context, "Error al descargar las imagens "));
           return const Center(child: Text('No hay imágenes descargadas.'));
         }
+
+/*
+el archivo de informacion de imagenes debe guardarse en local para cada consulta
+lo primero es consultar solo los grupos  de imagenes descargados y por cada grupo
+se compara la fecha de modificacion si hay una fecha mas reciente se procede a
+descargar las imagenes  de formaen que cada gupo consulta si la imagen ya esta descargada
+si no se procede a descargar y las que no esten en la lista de app write se borran
+de esta manera  a mantener la lista de imagenes actualizadas luego se procede a segir
+con el siguiente paso que trata de comparar si las imagenes estan descargadas crrectamente
+
+
+
+se procede a cargar las imagenes que se descargaron pero antes se procede
+a consultar si las imagenes estan descargadas por completo y descargadas correctamente
+de lo contrrio se procede a descargar los recursos por grupo
+-consultar las imagenes ya descargadas
+-consultar las informacion de las imagenes en appwrite
+y comparar si la catidad de imagenes es igual a la descargadas de no coinciir se
+procede a descargar las imagenes
+
+ */
 
         final gruposConImagenes = snapshot.data!;
         final grupoKeys = gruposConImagenes.keys.toList();
@@ -343,16 +395,18 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 8),
                             decoration: BoxDecoration(
-                              color:
-                              isSelected ? Colors.blue : Colors.grey.shade300,
+                              color: isSelected
+                                  ? Colors.blue
+                                  : Colors.grey.shade300,
                               borderRadius: BorderRadius.circular(20),
                             ),
                             child: Center(
                               child: Text(
                                 'Grupo $grupoId',
                                 style: TextStyle(
-                                  color:
-                                  isSelected ? Colors.white : Colors.black87,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.black87,
                                   fontWeight: isSelected
                                       ? FontWeight.bold
                                       : FontWeight.normal,
@@ -378,27 +432,13 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
                         final grupoId = grupoKeys[index];
                         final imagenes = gruposConImagenes[grupoId]!;
 
-                        return ListView(
+                        return ListView (
                           scrollDirection: Axis.horizontal,
                           children: imagenes.map((imagen) {
                             final ruta = imagen['path'];
-
-                            return Container(
-                              width: 120,
-                              margin: const EdgeInsets.only(right: 12),
-                              decoration: BoxDecoration(
-                                border: Border.all(color: Colors.grey),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: Image.file(
-                                  io.File(ruta),
-                                  fit: BoxFit.cover,
-                                ),
-                              ),
-                            );
+                            return ImagenVerificada(ruta: ruta);
                           }).toList(),
+
                         );
                       },
                     ),
@@ -411,8 +451,4 @@ class _DatosAppWriteState extends State<DatosAppWrite> {
       },
     );
   }
-
-
-
-
 }

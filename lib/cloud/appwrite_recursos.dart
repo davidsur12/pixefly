@@ -1,12 +1,17 @@
 import 'dart:io';
 
 import 'package:appwrite/appwrite.dart';
+
 import 'package:path_provider/path_provider.dart';
 import 'dart:typed_data' as typed; // Para manejar Uint8List
 import 'package:appwrite/models.dart' as appWriteModels;
-import 'package:pixelfy/data/data_backgraund.dart';
+import 'package:pixelfy/data/backgraund/info_backgraund_img.dart';
+import 'package:pixelfy/data/backgraund/data_backgraund.dart';
 
 class AppWrite {
+  final String _recursosGraficos = "67debbb0000b14f2f7ec";
+  final String _infoBackgraundImg = "681281080023b30adaa2";
+
   // Crear la instancia Singleton
   static final AppWrite _InstanciaAppWrite = AppWrite._constructor();
 
@@ -21,7 +26,7 @@ class AppWrite {
     // Inicializar el cliente en el constructor privado
     client
         .setEndpoint(
-            'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
+        'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
         .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
 
     // Inicializar `Storage` después de que `client` esté configurado
@@ -37,7 +42,7 @@ class AppWrite {
     Client client = Client();
     client
         .setEndpoint(
-            'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
+        'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
         .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
 
     Storage storage = Storage(client);
@@ -70,7 +75,7 @@ class AppWrite {
     try {
       // Descargar los bytes del archivo desde Appwrite.
       typed.Uint8List bytes =
-          await storage.getFileDownload(bucketId: bucketId, fileId: fileId);
+      await storage.getFileDownload(bucketId: bucketId, fileId: fileId);
 
       // Obtener un directorio temporal y definir el path del archivo descargado.
       Directory tempDir = await getTemporaryDirectory();
@@ -173,7 +178,8 @@ class AppWrite {
    * nombre del grupo
    */
 
-  Future<Map<int, List<List<String>>>> obtenerFileIdsPorGrupoBackground() async {
+  Future<
+      Map<int, List<List<String>>>> obtenerFileIdsPorGrupoBackground() async {
     Client client = Client()
         .setEndpoint("https://cloud.appwrite.io/v1")
         .setProject("67ddc33c0007f982de7a");
@@ -230,7 +236,9 @@ class AppWrite {
    */
   Future<void> obtenerYGuardarImagenesBackgraund() async {
     //Obtengo los field ids de las imagens agrupadas
-    Map<int, List<List<String>>> datosPorGrupo = await obtenerFileIdsPorGrupoBackground();
+    Map<int,
+        List<List<
+            String>>> datosPorGrupo = await obtenerFileIdsPorGrupoBackground();
 
     //recorro la lista de imagenes por grupo
     for (int grupo in datosPorGrupo.keys) {
@@ -263,18 +271,18 @@ class AppWrite {
    * path
    *
    */
-  Future<void> descargarYGuardarImagen(
-      int grupo, String nombreGrupo, String fileId) async {
+  Future<void> descargarYGuardarImagen(int grupo, String nombreGrupo,
+      String fileId) async {
     try {
       Client client = Client();
       client
           .setEndpoint(
-              'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
+          'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
           .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
 
       Storage storage = Storage(client);
 
-     // verifico si el fieldid ya esta guardao para no volver a descargarlo
+      // verifico si el fieldid ya esta guardao para no volver a descargarlo
       bool existe = await DataBackgraund().imageExistsByFieldId(fileId);
       if (existe) {
         print("La imagen ya está guardada.");
@@ -293,7 +301,7 @@ class AppWrite {
 
         // 3️⃣ Guardar el grupo y el path (fileId) en SQLite
         int result = await DataBackgraund()
-            .insertarImage(grupo, nombreGrupo, fileId , imageFile.path);
+            .insertarImage(grupo, nombreGrupo, fileId, imageFile.path);
 
         if (result != -1) {
           print("✅ Imagen guardada en SQLite: Grupo $grupo - FileID $fileId");
@@ -305,52 +313,46 @@ class AppWrite {
       print("❌ Error descargando imagen ($fileId): $e");
     }
   }
-/*
-  Future<void> descargarYGuardarImagen2(
-      int grupo, String nombreGrupo, String fileId) async {
+
+/***
+ * se encarga de descargar y guardar en sqlite la base de datos de informacion
+ * de imagenes en caso que se use por primera vez
+ */
+
+  Future<bool> obtenerFondosPorGrupo() async {
     try {
       Client client = Client();
       client
-          .setEndpoint(
-              'https://cloud.appwrite.io/v1') // Setear el endpoint correcto
-          .setProject('67ddc33c0007f982de7a'); // Setear tu project ID
+          .setEndpoint('https://cloud.appwrite.io/v1') // Endpoint correcto
+          .setProject('67ddc33c0007f982de7a');         // Tu project ID
 
-      Storage storage = Storage(client);
+      Databases databases = Databases(client);         // ✅ Aquí va Databases
 
-      // 1️**Descargar los bytes de la imagen**
-
-      typed.Uint8List bytes = await storage.getFileDownload(
-        bucketId: '67ded71200357a584f41',
-        fileId: fileId,
+      final response = await databases.listDocuments(
+        databaseId: _recursosGraficos ,
+        collectionId: _infoBackgraundImg,
+        queries: [
+          Query.equal('grupo', [1, 2, 3, 4, 5]),
+        ],
       );
 
-      // **Guardar la imagen localmente**
-      print("📥 Bytes descargados: ${bytes.length}");
-      print("Desacragando la imagen $fileId");
-      File imageFile = (await DataBackgraund()
-          .insertarImage(grupo, nombreGrupo, fileId, "")) as File;
+      print('Documentos obtenidos: ${response.documents.length}');
+      for (var doc in response.documents) {
 
-      //  **Guardar en SQLite**
-      await DataBackgraund().insertarImage(grupo, nombreGrupo,fileId , imageFile.path);
+       // print(doc.data);
 
-      print("✅ Imagen guardada en SQLite: Grupo $grupo - FileID $fileId");
+
+        await DatabaseInfoBackgraund.instance.insertData(doc.data["grupo"], doc.data["cantidad_img"], doc.data["fecha_actualizacion"]);
+
+      }
+
+      return true;
     } catch (e) {
-      print("❌ Error descargando imagen ($fileId): $e");
+      print('Error al obtener documentos: $e');
+      return false;
     }
   }
 
-  */
 
-/*
 
-  import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-
-Future<String> saveImage(File imageFile, String fileName) async {
-  final directory = await getApplicationDocumentsDirectory(); // Directorio privado de la app
-  final filePath = '${directory.path}/$fileName';
-  final newFile = await imageFile.copy(filePath);
-  return newFile.path;
-}
-   */
 }
